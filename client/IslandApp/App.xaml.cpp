@@ -38,7 +38,7 @@ namespace winrt::IslandApp::implementation
 
     void App::OnLaunched(LaunchActivatedEventArgs const&)
     {
-        window = make<IslandApp::IslandWindow>();
+        window = make<winrt::IslandApp::implementation::IslandWindow>(); // 注意：必须 implementation 命名空间（限定名会命中投影类→编译错）
         window.Activate();
     }
 }

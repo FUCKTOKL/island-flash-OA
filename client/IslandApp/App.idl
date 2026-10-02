@@ -1,9 +1,10 @@
 ﻿// App 运行时类声明（IDL3）：事件处理器无需进 IDL，仅暴露构造
 namespace IslandApp
 {
+    // 注意：Application 派生类不声明默认构造（真模板如此）；
+    // 声明会生成 App::App(): App(make<...>) 胶水，而 make<Application实现> 返回基类→C2665
     [default_interface]
     runtimeclass App : Microsoft.UI.Xaml.Application
     {
-        App();
     }
 }

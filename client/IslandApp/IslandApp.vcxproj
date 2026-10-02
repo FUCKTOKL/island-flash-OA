@@ -29,6 +29,9 @@
     <WindowsPackageType>None</WindowsPackageType>
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
     <DisableDeploymentProjectReferences>true</DisableDeploymentProjectReferences>
+    <!-- 原生 XAML 编译挂接：直指 VS 组件 8.21 实现（BeforeClCompile→MarkupCompilePass1）。
+         外层壳的重定向 Exists() 按工程目录解析相对路径会失效，故绕过壳直接指向实现文件 -->
+    <_CppCommonExtensionTargets>$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\8.21\Microsoft.Windows.UI.Xaml.CPP.Targets</_CppCommonExtensionTargets>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -55,11 +58,18 @@
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <!-- 生成 TU（XamlTypeInfo.g.cpp 等）引用工程目录下的 .xaml.h，需显式加入搜索路径 -->
+      <AdditionalIncludeDirectories>$(ProjectDir);$(GeneratedFilesDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <!-- 绕过 __has_include 抖动：强制生成头走 XAML 版本（否则回退 composing 基类→C2665） -->
+      <PreprocessorDefinitions>WINRT_FORCE_INCLUDE_APP_XAML_G_H;WINRT_FORCE_INCLUDE_ISLANDWINDOW_XAML_G_H;DISABLE_XAML_GENERATED_MAIN;_VSDESIGNER_DONT_LOAD_AS_DLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <!-- /Zi 替代默认 /ZI：避免多 cl 实例争写 PDB（C1041） -->
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <WarningLevel>Level4</WarningLevel>
       <!-- /utf-8：源码含中文注释，统一按 UTF-8 编译 -->
       <AdditionalOptions>/utf-8 /bigobj %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4453;28204</DisableSpecificWarnings>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <!-- C++20：标准协程（VS18 已移除 /await，2.x 在 C++17 下会注入它） -->
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <!-- 入口为 wWinMain（解包 WinUI3 惯例） -->
@@ -106,13 +116,15 @@
       <Version>1.8.260921001</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Windows.CppWinRT">
-      <Version>3.0.260818.1</Version>
+      <Version>2.0.250303.1</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools">
       <Version>10.0.22621.756</Version>
     </PackageReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <!-- 强制时序：ClCompile 前必先跑引用解析与 XAML 编译（否则 xaml.g.h 尚未生成→回退基类→C2665 级联） -->
+  <Target Name="ForceXamlBeforeCompile" BeforeTargets="ClCompile" DependsOnTargets="ResolveAssemblyReferences;MarkupCompilePass1" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
 </Project>

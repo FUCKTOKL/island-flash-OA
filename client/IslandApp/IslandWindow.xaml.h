@@ -35,7 +35,7 @@ namespace winrt::IslandApp::implementation
         void UpdateClock();
         void OnClockTick(Windows::Foundation::IInspectable const&, Windows::Foundation::IInspectable const&);
         void OnAnimTick(Windows::Foundation::IInspectable const&, Windows::Foundation::IInspectable const&);
-        void OnActivated(winrt::Microsoft::UI::Xaml::Window const&,
+        void OnActivated(Windows::Foundation::IInspectable const&,
                          Microsoft::UI::Xaml::WindowActivatedEventArgs const& args);
 
         // ---- 状态 ----

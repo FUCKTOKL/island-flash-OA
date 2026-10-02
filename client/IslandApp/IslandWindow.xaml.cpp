@@ -173,7 +173,7 @@ namespace winrt::IslandApp::implementation
         if (m_frame == 1 && m_expanded)
             PlayEnterAnimation();
 
-        double t = std::min(1.0, m_frame / static_cast<double>(ANIM_FRAMES));
+        double t = (std::min)(1.0, m_frame / static_cast<double>(ANIM_FRAMES)); // (std::min)防 windows.h 宏
         double e = 1.0 - std::pow(1.0 - t, 3.0); // ease-out cubic
         m_appWindow.MoveAndResize(LerpRect(m_from, m_to, e));
 
@@ -195,8 +195,8 @@ namespace winrt::IslandApp::implementation
         auto visual = Hosting::ElementCompositionPreview::GetElementVisual(ContentHost());
         auto comp = visual.Compositor();
 
-        auto size = ContentHost().ActualSize(); // {宽,高}（DIP）
-        visual.CenterPoint({ size.X / 2.0f, size.Y / 2.0f, 0.0f });
+        auto size = ContentHost().ActualSize(); // {宽,高}（DIP，float2 字段为小写 x/y）
+        visual.CenterPoint({ size.x / 2.0f, size.y / 2.0f, 0.0f });
 
         auto easing = comp.CreateCubicBezierEasingFunction({ 0.55f, 0.0f }, { 0.15f, 1.0f });
         auto const dur = std::chrono::milliseconds{ 220 };
@@ -217,7 +217,7 @@ namespace winrt::IslandApp::implementation
     // ================= 页签 =================
     void IslandWindow::OnTabClick(IInspectable const& sender, RoutedEventArgs const&)
     {
-        int idx = _wtoi(sender.as<Controls::FrameworkElement>().Tag().as<hstring>().c_str());
+        int idx = _wtoi(sender.as<FrameworkElement>().Tag().as<hstring>().c_str()); // FrameworkElement 在 Xaml 命名空间
         SelectTab(idx);
     }
 
@@ -302,7 +302,7 @@ namespace winrt::IslandApp::implementation
         TimeText().Text(fmt.Format(winrt::clock::now()));
     }
 
-    void IslandWindow::OnActivated(Microsoft::UI::Xaml::Window const&, WindowActivatedEventArgs const& args)
+    void IslandWindow::OnActivated(IInspectable const&, WindowActivatedEventArgs const& args)
     {
         if (args.WindowActivationState() == WindowActivationState::Deactivated)
         {

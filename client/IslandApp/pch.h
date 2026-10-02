@@ -16,10 +16,13 @@
 #include <winrt/Microsoft.UI.Xaml.Controls.Primitives.h>
 #include <winrt/Microsoft.UI.Xaml.Markup.h>
 #include <winrt/Microsoft.UI.Xaml.Media.h>
+// 指针事件（PointerPoint.Properties 在 Microsoft.UI.Input）
+#include <winrt/Microsoft.UI.Input.h>
 // 窗口管理（AppWindow / OverlappedPresenter / DisplayArea）
 #include <winrt/Microsoft.UI.Windowing.h>
-// XAML-Composition 互操作（ElementCompositionPreview）
+// XAML-Composition 互操作（ElementCompositionPreview；WASDK 的 Composition 在 Microsoft.UI.Composition）
 #include <winrt/Microsoft.UI.Xaml.Hosting.h>
+#include <winrt/Microsoft.UI.Composition.h>
 #include <winrt/Windows.UI.Composition.h>
 // 时钟/定时器/输入
 #include <winrt/Windows.System.h>
