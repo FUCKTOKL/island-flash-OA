@@ -1,0 +1,9 @@
+﻿// IslandWindow 运行时类（壳窗口：胶囊/展开两态 + 拖动 + 动画）
+namespace IslandApp
+{
+    [default_interface]
+    runtimeclass IslandWindow : Microsoft.UI.Xaml.Window
+    {
+        IslandWindow();
+    }
+}

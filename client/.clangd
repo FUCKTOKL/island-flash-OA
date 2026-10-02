@@ -1,0 +1,6 @@
+# WinUI3 C++/WinRT 项目：clangd 无法解析本项目——
+# 1) XAML 生成头（*.g.h）只在 MSBuild 时产生，静态检查时不存在
+# 2) C++/WinRT 协程头在 Clang 下触发 STL1009 静态断言（MSVC 正常）
+# 真实校验 = VS2022/MSBuild 编译。诊断全关，避免误报刷屏。
+Diagnostics:
+  SuppressAll: true

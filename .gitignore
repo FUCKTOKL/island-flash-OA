@@ -9,3 +9,11 @@ server/data/
 
 # IDE
 .idea/
+
+# VS / C++ 客户端构建产物
+.vs/
+client/**/x64/
+client/**/Win32/
+client/**/ARM64/
+client/**/packages/
+*.user

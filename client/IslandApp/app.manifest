@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 声明清单：PerMonitorV2 DPI + Win10/11 支持 + UTF-8 代码页 -->
+<assembly manifestVersion="1.0" xmlns="urn:schemas-microsoft-com:asm.v1">
+  <assemblyIdentity version="1.0.0.0" name="IslandApp.app"/>
+
+  <compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1.0">
+    <application>
+      <!-- Windows 10 / 11 -->
+      <supportedOS Guid="{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}" />
+    </application>
+  </compatibility>
+
+  <application xmlns="urn:schemas-microsoft-com:asm.v3">
+    <windowsSettings>
+      <!-- 灵动岛坐标按物理像素计算，必须逐显示器感知 DPI -->
+      <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">PerMonitorV2</dpiAwareness>
+      <!-- 源码/资源统一 UTF-8，中文文案不受系统代码页影响 -->
+      <activeCodePage xmlns="http://schemas.microsoft.com/SMI/2019/WindowsSettings">UTF-8</activeCodePage>
+    </windowsSettings>
+  </application>
+</assembly>

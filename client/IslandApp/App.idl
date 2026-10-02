@@ -1,0 +1,9 @@
+﻿// App 运行时类声明（IDL3）：事件处理器无需进 IDL，仅暴露构造
+namespace IslandApp
+{
+    [default_interface]
+    runtimeclass App : Microsoft.UI.Xaml.Application
+    {
+        App();
+    }
+}
