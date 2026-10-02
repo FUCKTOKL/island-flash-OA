@@ -17,3 +17,8 @@ client/**/Win32/
 client/**/ARM64/
 client/**/packages/
 *.user
+
+# 客户端构建中间物与诊断日志
+client/IslandApp/obj/
+/client/*.txt
+*.log
