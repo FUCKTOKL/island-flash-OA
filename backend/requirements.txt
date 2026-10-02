@@ -1,0 +1,8 @@
+# IF-OA 后端依赖清单（由用户手动执行安装：venv\Scripts\pip install -r requirements.txt）
+fastapi>=0.115          # Web 框架（含 pydantic v2）
+uvicorn[standard]>=0.30 # ASGI 服务器；[standard] 带 watchfiles 等
+sqlalchemy[asyncio]>=2.0 # ORM（异步）
+aiosqlite>=0.20         # SQLite 异步驱动
+pyjwt>=2.8              # JWT 签发/校验
+bcrypt>=4.1             # 密码哈希（不用 passlib，其已停更）
+python-multipart>=0.0.9 # 文件上传 multipart 解析

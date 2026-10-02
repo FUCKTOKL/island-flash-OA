@@ -1,0 +1,11 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# 运行数据（SQLite + 上传文件）
+server/data/
+
+# IDE
+.idea/
