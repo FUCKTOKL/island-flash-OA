@@ -33,6 +33,8 @@ namespace winrt::IslandApp::implementation
         void SelectTab(int idx);    // 页签切换（骨架：占位页 Visibility 切换）
 
         void UpdateClock();
+        void OnRootLoaded(Windows::Foundation::IInspectable const&,
+                          Microsoft::UI::Xaml::RoutedEventArgs const&); // Root 加载完再初始化壳
         void OnClockTick(Windows::Foundation::IInspectable const&, Windows::Foundation::IInspectable const&);
         void OnAnimTick(Windows::Foundation::IInspectable const&, Windows::Foundation::IInspectable const&);
         void OnActivated(Windows::Foundation::IInspectable const&,

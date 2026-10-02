@@ -59,9 +59,17 @@ namespace winrt::IslandApp::implementation
         m_clock.Tick({ this, &IslandWindow::OnClockTick });
         m_clock.Start();
 
-        SetupShell();
+        /* SetupShell 延迟到 Root Loaded：构造期可组合基类 inner 尚未挂接，
+        try_as<IWindowNative> 会返回空导致空指针崩溃（0xC0000005） */
+        Root().Loaded({ this, &IslandWindow::OnRootLoaded });
+
         UpdateClock();
         SelectTab(0);
+    }
+
+    void IslandWindow::OnRootLoaded(IInspectable const&, RoutedEventArgs const&)
+    {
+        SetupShell();
     }
 
     // ================= 壳初始化 =================
