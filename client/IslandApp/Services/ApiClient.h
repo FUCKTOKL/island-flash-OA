@@ -2,6 +2,7 @@
 // 极简 API 客户端：Windows.Web.Http 封装（系统自带，不引第三方库；AGENTS 约束）
 // ponytail: 仅登录 + token/服务器地址持久化；其余接口按页面需要再加
 #include <winrt/Windows.Web.Http.h>
+#include <winrt/Windows.Web.Http.Headers.h> // DefaultRequestHeaders 在此
 #include <winrt/Windows.Storage.Streams.h> // UnicodeEncoding 在这里（Http 枚举借用）
 #include <winrt/Windows.Data.Json.h>
 #include <winrt/Windows.Foundation.h>
@@ -15,11 +16,17 @@ namespace ifoa
     public:
         // 服务器基地址（含 http://host:port）
         void SetBase(winrt::hstring const& base) { m_base = base; }
+        winrt::hstring Base() const { return m_base; }
+        void SetToken(winrt::hstring const& token); // 后续请求带 Authorization
         winrt::hstring LastError() const { return m_lastError; }
 
         // POST /api/auth/login：成功返回 token，失败返回空串（原因在 LastError）
         winrt::Windows::Foundation::IAsyncOperation<winrt::hstring>
             LoginAsync(winrt::hstring const& user, winrt::hstring const& pass);
+
+        // 通用 GET（需先 SetToken）：200 返回 body，否则空串 + LastError
+        winrt::Windows::Foundation::IAsyncOperation<winrt::hstring>
+            GetAsync(winrt::hstring const& path);
 
         // ---- 持久化（注册表 HKCU\Software\IF-OA\Island）----
         // token 用 DPAPI 加密：PasswordVault 需要包标识，解包应用用不了
@@ -35,6 +42,36 @@ namespace ifoa
     };
 
     // ================= 实现（header-only，量小不值得拆 .cpp） =================
+
+    inline void ApiClient::SetToken(winrt::hstring const& token)
+    {
+        if (!m_http) m_http = winrt::Windows::Web::Http::HttpClient();
+        m_http.DefaultRequestHeaders().Clear(); // 重登录防重复叠加
+        m_http.DefaultRequestHeaders().Append(L"Authorization", L"Bearer " + std::wstring(token));
+    }
+
+    inline winrt::Windows::Foundation::IAsyncOperation<winrt::hstring>
+        ApiClient::GetAsync(winrt::hstring const& path)
+    {
+        using namespace winrt::Windows::Web::Http;
+        m_lastError = L"";
+        try
+        {
+            if (!m_http) m_http = HttpClient();
+            auto resp = co_await m_http.GetAsync(winrt::Windows::Foundation::Uri(m_base + path));
+            auto text = co_await resp.Content().ReadAsStringAsync();
+            int code = static_cast<int>(resp.StatusCode());
+            if (code == 200) co_return text;
+            if (code == 401) m_lastError = L"登录已过期";
+            else m_lastError = L"服务器错误 (" + std::to_wstring(code) + L")";
+        }
+        catch (winrt::hresult_error const& e)
+        {
+            m_lastError = L"无法连接服务器：" + e.message();
+        }
+        catch (...) { m_lastError = L"未知错误"; }
+        co_return L"";
+    }
 
     inline winrt::Windows::Foundation::IAsyncOperation<winrt::hstring>
         ApiClient::LoginAsync(winrt::hstring const& user, winrt::hstring const& pass)

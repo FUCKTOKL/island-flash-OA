@@ -124,6 +124,7 @@
                     <FontIcon Glyph="&#xE77B;" FontSize="36" Opacity="0.6"/>
                     <TextBlock Text="个人中心" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center"/>
                     <TextBlock Text="资料/头像/密码 + 设置中心" Opacity="0.55" HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="MeWelcome" Text="（未登录）" Opacity="0.75" FontSize="13" HorizontalAlignment="Center"/>
                     <TextBlock Text="（登录卡在无 token 时强制展示，服务接入后实现）" Opacity="0.35" FontSize="12" HorizontalAlignment="Center"/>
                 </StackPanel>
                 </Grid>

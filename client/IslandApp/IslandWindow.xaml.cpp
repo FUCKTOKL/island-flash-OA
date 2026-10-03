@@ -54,6 +54,7 @@ namespace winrt::IslandApp::implementation
     IslandWindow::IslandWindow()
     {
         InitializeComponent();
+        m_dq = this->DispatcherQueue(); // WS 事件编回 UI 线程用
         LogDiag("ctor-xaml-ok\n");
 
         // Esc 收起（Accelerator 挂根元素，无需焦点管理；docs/02 状态机）
@@ -118,6 +119,12 @@ namespace winrt::IslandApp::implementation
         LoginServer().Text(ifoa::ApiClient::LoadServer());
         if (ifoa::ApiClient::LoadToken().empty())
             EnterLoginState();
+        else // 已有 token：恢复会话（拉个人信息 + WS）
+        {
+            auto token = ifoa::ApiClient::LoadToken();
+            m_api.SetToken(token);
+            AfterLogin(token);
+        }
     }
 
     // ================= 壳初始化 =================
@@ -304,6 +311,40 @@ namespace winrt::IslandApp::implementation
         DoLogin();
     }
 
+    // 登录后置：拉个人信息 + WS 连接（未读角标）
+    winrt::fire_and_forget IslandWindow::AfterLogin(winrt::hstring token)
+    {
+        auto lifetime = get_strong();
+        auto me = co_await m_api.GetAsync(L"/api/auth/me");
+        if (!me.empty())
+        {
+            try
+            {
+                auto obj = winrt::Windows::Data::Json::JsonObject::Parse(me);
+                MeWelcome().Text(L"欢迎，" + obj.GetNamedString(L"name") + L"（" + obj.GetNamedString(L"role") + L"）");
+            }
+            catch (...) { /* me 拉取失败不阻断主流程 */ }
+        }
+        m_ws.Start(m_api.Base(), token, m_dq,
+                   [this](winrt::hstring type) { OnWsEvent(type); });
+    }
+
+    void IslandWindow::OnWsEvent(winrt::hstring const& type)
+    {
+        // docs/02 §二：胶囊角标 = 消息 + 通知合并计数
+        if (type == L"message.new" || type == L"notification.new")
+        {
+            ++m_unread;
+            UpdateBadge();
+        }
+    }
+
+    void IslandWindow::UpdateBadge()
+    {
+        BadgeText().Text(winrt::hstring(std::to_wstring(m_unread)));
+        Badge().Visibility(m_unread > 0 ? Visibility::Visible : Visibility::Collapsed);
+    }
+
     winrt::fire_and_forget IslandWindow::DoLogin()
     {
         auto lifetime = get_strong(); // 协程期间窗口保活
@@ -325,6 +366,8 @@ namespace winrt::IslandApp::implementation
             ExpandedPanel().Visibility(Visibility::Visible);
             ExpandedPanel().IsHitTestVisible(true);
             SelectTab(0);
+            m_api.SetToken(token);
+            AfterLogin(token);
         }
         else
         {

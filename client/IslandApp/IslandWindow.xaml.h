@@ -2,6 +2,7 @@
 // 岛壳窗口：两态切换/拖动/动画/时钟（对应 docs/02 §二"窗口模型与状态机"）
 #include "IslandWindow.g.h"
 #include "Services/ApiClient.h"
+#include "Services/WsClient.h"
 
 namespace winrt::IslandApp::implementation
 {
@@ -36,6 +37,9 @@ namespace winrt::IslandApp::implementation
         void SelectTab(int idx);    // 页签切换（骨架：占位页 Visibility 切换）
         void EnterLoginState();     // 无 token：强制展开仅登录卡（docs/02 状态机）
         winrt::fire_and_forget DoLogin();
+        winrt::fire_and_forget AfterLogin(winrt::hstring token); // 拉个人信息 + WS 连接
+        void OnWsEvent(winrt::hstring const& type);              // WS 推送分发（UI 线程）
+        void UpdateBadge();                                       // 胶囊未读角标
 
         void UpdateClock();
         void OnRootLoaded(Windows::Foundation::IInspectable const&,
@@ -62,6 +66,9 @@ namespace winrt::IslandApp::implementation
         winrt::Microsoft::UI::Dispatching::DispatcherQueueTimer m_animTimer{ nullptr }; // 60fps 动画
         bool m_loginMode{ false }; // 登录态（无 token 时展开仅登录卡）
         ifoa::ApiClient m_api;     // 后端 API 客户端（Windows.Web.Http）
+        ifoa::WsClient m_ws;       // 后端推送（MessageWebSocket）
+        int m_unread{ 0 };         // 合并未读（消息+通知，docs/02 §二）
+        winrt::Microsoft::UI::Dispatching::DispatcherQueue m_dq{ nullptr }; // UI 调度器（WS 事件编回）
     };
 }
 

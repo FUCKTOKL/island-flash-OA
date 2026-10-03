@@ -84,6 +84,7 @@
       <DependentUpon>IslandWindow.xaml</DependentUpon>
     </ClInclude>
     <ClInclude Include="Services\ApiClient.h" />
+    <ClInclude Include="Services\WsClient.h" />
     <ClInclude Include="App.xaml.h">
       <DependentUpon>App.xaml</DependentUpon>
     </ClInclude>
