@@ -75,6 +75,17 @@
                         HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
             </Border>
 
+            <!-- 退出：独立小圆岛（托盘菜单 P1 前的退出入口） -->
+            <Border Grid.Row="0" Width="30" Height="30" CornerRadius="15" HorizontalAlignment="Right"
+                    VerticalAlignment="Center" Margin="0,0,42,0"
+                    Background="#D91E2024" BorderBrush="#2EFFFFFF" BorderThickness="1">
+                <Button x:Name="ExitBtn" Click="OnExitClick" ToolTipService.ToolTip="退出灵动岛"
+                        Background="Transparent" BorderThickness="0" CornerRadius="15"
+                        HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                    <FontIcon Glyph="&#xE711;" FontSize="12"/>
+                </Button>
+            </Border>
+
             <!-- 内容岛：整块毛玻璃面板 -->
             <Border Grid.Row="1" CornerRadius="18" Margin="0,8,0,0"
                     Background="#991E2024" BorderBrush="#22FFFFFF" BorderThickness="1" Padding="18">

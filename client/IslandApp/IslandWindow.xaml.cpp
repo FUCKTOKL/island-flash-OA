@@ -278,6 +278,12 @@ namespace winrt::IslandApp::implementation
         SelectTab(idx);
     }
 
+    void IslandWindow::OnExitClick(IInspectable const&, RoutedEventArgs const&)
+    {
+        // 退出：单窗口应用，关窗即进程结束（消息循环自然退）
+        this->Close();
+    }
+
     void IslandWindow::OnCollapseClick(IInspectable const&, RoutedEventArgs const&)
     {
         Collapse();

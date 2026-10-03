@@ -25,6 +25,8 @@ namespace winrt::IslandApp::implementation
                           Microsoft::UI::Xaml::RoutedEventArgs const&);
         void OnAddTodoClick(Windows::Foundation::IInspectable const&,
                             Microsoft::UI::Xaml::RoutedEventArgs const&);
+        void OnExitClick(Windows::Foundation::IInspectable const&,
+                         Microsoft::UI::Xaml::RoutedEventArgs const&);
 
     private:
         // ---- 壳生命周期 ----
