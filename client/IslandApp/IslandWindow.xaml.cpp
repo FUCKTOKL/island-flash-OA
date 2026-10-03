@@ -80,6 +80,7 @@ namespace winrt::IslandApp::implementation
 
         m_appWindow = mw::AppWindow::GetFromWindowId(
             winrt::Microsoft::UI::WindowId{ reinterpret_cast<uint64_t>(m_hwnd) });
+        m_appWindow.Title(L"IF-OA 灵动岛"); // 单实例验证用（FindWindow 按标题找）
 
         auto pres = m_appWindow.Presenter().as<mw::OverlappedPresenter>();
         pres.SetBorderAndTitleBar(false, false); // 无边框无标题栏（胶囊形态的前提）

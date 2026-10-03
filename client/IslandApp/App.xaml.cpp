@@ -10,14 +10,19 @@ using namespace winrt;
 using namespace Microsoft::UI::Xaml;
 
 // ============ 唯一实例互斥 ============
-// 灵动岛常驻顶部，开两个会重叠错乱；已在跑则直接退出（doc/02 §二 实现要点）
+// docs/02 §二：灵动岛不该开两个。但崩溃僵尸进程会攥着互斥锁误杀新实例，
+// 所以冲突时用窗口存在性验证“真身”：无窗口 = 僵尸 → 放行
 int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
 {
     HANDLE mutex = CreateMutexW(nullptr, TRUE, L"IF-OA.Island.SingleInstance");
     if (mutex && GetLastError() == ERROR_ALREADY_EXISTS)
     {
-        CloseHandle(mutex);
-        return 0; // 已有实例，安静退出
+        if (FindWindowW(nullptr, L"IF-OA 灵动岛")) // 有活窗口才是真实例
+        {
+            CloseHandle(mutex);
+            return 0;
+        }
+        // 无窗口：僵尸残留，抢占启动
     }
     // WinUI3 解包应用标准入口：Application::Start 回调里创建 App
     Application::Start([](auto&&) { winrt::make<winrt::IslandApp::implementation::App>(); });
