@@ -83,6 +83,7 @@
     <ClInclude Include="IslandWindow.xaml.h">
       <DependentUpon>IslandWindow.xaml</DependentUpon>
     </ClInclude>
+    <ClInclude Include="Services\ApiClient.h" />
     <ClInclude Include="App.xaml.h">
       <DependentUpon>App.xaml</DependentUpon>
     </ClInclude>

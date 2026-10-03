@@ -1,6 +1,7 @@
 #pragma once
 // 岛壳窗口：两态切换/拖动/动画/时钟（对应 docs/02 §二"窗口模型与状态机"）
 #include "IslandWindow.g.h"
+#include "Services/ApiClient.h"
 
 namespace winrt::IslandApp::implementation
 {
@@ -18,7 +19,9 @@ namespace winrt::IslandApp::implementation
         void OnRootPointerMoved(Windows::Foundation::IInspectable const&,
                                 Microsoft::UI::Xaml::Input::PointerRoutedEventArgs const& e);
         void OnRootPointerReleased(Windows::Foundation::IInspectable const&,
-                                  Microsoft::UI::Xaml::Input::PointerRoutedEventArgs const& e);
+                                   Microsoft::UI::Xaml::Input::PointerRoutedEventArgs const& e);
+        void OnLoginClick(Windows::Foundation::IInspectable const&,
+                          Microsoft::UI::Xaml::RoutedEventArgs const&);
 
     private:
         // ---- 壳生命周期 ----
@@ -31,6 +34,8 @@ namespace winrt::IslandApp::implementation
         void Collapse();            // 展开 → 胶囊
         void PlayEnterAnimation();  // 内容 scale 0.92→1 + 淡入（Composition）
         void SelectTab(int idx);    // 页签切换（骨架：占位页 Visibility 切换）
+        void EnterLoginState();     // 无 token：强制展开仅登录卡（docs/02 状态机）
+        winrt::fire_and_forget DoLogin();
 
         void UpdateClock();
         void OnRootLoaded(Windows::Foundation::IInspectable const&,
@@ -55,6 +60,8 @@ namespace winrt::IslandApp::implementation
         int m_frame{ 0 };            // 动画帧计数
         winrt::Microsoft::UI::Dispatching::DispatcherQueueTimer m_clock{ nullptr };     // 秒时钟
         winrt::Microsoft::UI::Dispatching::DispatcherQueueTimer m_animTimer{ nullptr }; // 60fps 动画
+        bool m_loginMode{ false }; // 登录态（无 token 时展开仅登录卡）
+        ifoa::ApiClient m_api;     // 后端 API 客户端（Windows.Web.Http）
     };
 }
 

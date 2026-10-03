@@ -112,6 +112,12 @@ namespace winrt::IslandApp::implementation
         {
             LogDiag("SetupShell unknown-exception\n");
         }
+
+        // 无 token → 强制展开仅登录卡（docs/02 状态机：首启/登出后）
+        m_api.SetBase(ifoa::ApiClient::LoadServer());
+        LoginServer().Text(ifoa::ApiClient::LoadServer());
+        if (ifoa::ApiClient::LoadToken().empty())
+            EnterLoginState();
     }
 
     // ================= 壳初始化 =================
@@ -191,10 +197,17 @@ namespace winrt::IslandApp::implementation
         m_expRect.X = std::clamp(m_expRect.X, wa.X, wa.X + wa.Width - EXP_W);
         m_expRect.Y = std::clamp(m_expRect.Y, wa.Y, wa.Y + wa.Height - EXP_H);
 
-        // 内容立即切换为展开面板（进入动画在首帧布局完成后触发）
+        // 内容立即切换（登录态显示登录卡，否则展开面板）；进入动画在首帧布局完成后触发
         CapsulePanel().Visibility(Visibility::Collapsed);
-        ExpandedPanel().Visibility(Visibility::Visible);
-        ExpandedPanel().IsHitTestVisible(true);
+        if (m_loginMode)
+        {
+            LoginPanel().Visibility(Visibility::Visible);
+        }
+        else
+        {
+            ExpandedPanel().Visibility(Visibility::Visible);
+            ExpandedPanel().IsHitTestVisible(true);
+        }
 
         m_from = m_capRect;
         m_to = m_expRect;
@@ -235,6 +248,7 @@ namespace winrt::IslandApp::implementation
             if (!m_expanded) // 收起完成：换回胶囊内容
             {
                 ExpandedPanel().Visibility(Visibility::Collapsed);
+                LoginPanel().Visibility(Visibility::Collapsed);
                 CapsulePanel().Visibility(Visibility::Visible);
             }
         }
@@ -275,6 +289,47 @@ namespace winrt::IslandApp::implementation
     void IslandWindow::OnCollapseClick(IInspectable const&, RoutedEventArgs const&)
     {
         Collapse();
+    }
+
+    // ============ 登录 ============
+    void IslandWindow::EnterLoginState()
+    {
+        m_loginMode = true;
+        Expand();
+    }
+
+    void IslandWindow::OnLoginClick(IInspectable const&, RoutedEventArgs const&)
+    {
+        DoLogin();
+    }
+
+    winrt::fire_and_forget IslandWindow::DoLogin()
+    {
+        auto lifetime = get_strong(); // 协程期间窗口保活
+        LoginBtn().IsEnabled(false);
+        LoginBtn().Content(box_value(L"连接中…"));
+        LoginError().Visibility(Visibility::Collapsed);
+
+        m_api.SetBase(LoginServer().Text());
+        auto token = co_await m_api.LoginAsync(LoginUser().Text(), LoginPass().Password());
+
+        LoginBtn().IsEnabled(true);
+        LoginBtn().Content(box_value(L"登录"));
+        if (!token.empty())
+        {
+            ifoa::ApiClient::SaveToken(token);             // DPAPI 加密存注册表
+            ifoa::ApiClient::SaveServer(LoginServer().Text());
+            m_loginMode = false;
+            LoginPanel().Visibility(Visibility::Collapsed);
+            ExpandedPanel().Visibility(Visibility::Visible);
+            ExpandedPanel().IsHitTestVisible(true);
+            SelectTab(0);
+        }
+        else
+        {
+            LoginError().Text(m_api.LastError());
+            LoginError().Visibility(Visibility::Visible);
+        }
     }
 
     // 骨架版页签：占位页 Visibility 切换 + 字重高亮；

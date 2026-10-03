@@ -49,18 +49,34 @@
             <!-- 44px 页签栏：左 4 页签，右 [—] 收起 -->
             <Grid Grid.Row="0">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0">
-                    <Button x:Name="Tab0" Tag="0" Content="🕘 工作台" Click="OnTabClick"
-                            Background="Transparent" CornerRadius="6" Padding="14,6"
-                            FontSize="13" Margin="0,0,4,0"/>
-                    <Button x:Name="Tab1" Tag="1" Content="📁 文件" Click="OnTabClick"
-                            Background="Transparent" CornerRadius="6" Padding="14,6"
-                            FontSize="13" Margin="0,0,4,0"/>
-                    <Button x:Name="Tab2" Tag="2" Content="💬 对话" Click="OnTabClick"
-                            Background="Transparent" CornerRadius="6" Padding="14,6"
-                            FontSize="13" Margin="0,0,4,0"/>
-                    <Button x:Name="Tab3" Tag="3" Content="👤 我" Click="OnTabClick"
-                            Background="Transparent" CornerRadius="6" Padding="14,6"
-                            FontSize="13"/>
+                    <Button x:Name="Tab0" Tag="0" Click="OnTabClick" Background="Transparent"
+                            CornerRadius="6" Padding="12,6" Margin="0,0,4,0">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon Glyph="&#xE80F;" FontSize="14"/>
+                            <TextBlock Text="工作台" FontSize="13"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="Tab1" Tag="1" Click="OnTabClick" Background="Transparent"
+                            CornerRadius="6" Padding="12,6" Margin="0,0,4,0">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon Glyph="&#xE8B7;" FontSize="14"/>
+                            <TextBlock Text="文件" FontSize="13"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="Tab2" Tag="2" Click="OnTabClick" Background="Transparent"
+                            CornerRadius="6" Padding="12,6" Margin="0,0,4,0">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon Glyph="&#xE8BD;" FontSize="14"/>
+                            <TextBlock Text="对话" FontSize="13"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="Tab3" Tag="3" Click="OnTabClick" Background="Transparent"
+                            CornerRadius="6" Padding="12,6">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon Glyph="&#xE77B;" FontSize="14"/>
+                            <TextBlock Text="我" FontSize="13"/>
+                        </StackPanel>
+                    </Button>
                 </StackPanel>
                 <Button x:Name="CollapseBtn" Content="—"
                         Click="OnCollapseClick" ToolTipService.ToolTip="收起（Esc）"
@@ -103,6 +119,35 @@
                     <TextBlock Text="（登录卡在无 token 时强制展示，服务接入后实现）" Opacity="0.35" FontSize="12" HorizontalAlignment="Center"/>
                 </StackPanel>
             </Grid>
+        </Grid>
+
+        <!-- ================= 登录卡（无 token 时强制展开；docs/02 §四） ================= -->
+        <Grid x:Name="LoginPanel" Visibility="Collapsed">
+            <Border Width="300" Padding="28,24" CornerRadius="16"
+                    Background="#F2202226" BorderBrush="#26FFFFFF" BorderThickness="1"
+                    HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel Spacing="10">
+                    <FontIcon Glyph="&#xE7B8;" FontSize="28" Foreground="{ThemeResource IslandAccentBrush}"/>
+                    <TextBlock Text="IF-OA 灵动岛" FontSize="20" FontWeight="SemiBold"
+                               FontFamily="Segoe UI Variable Display" Margin="0,-2,0,0"/>
+                    <TextBlock Text="登录以连接办公服务" FontSize="12" Opacity="0.55"/>
+
+                    <TextBlock Text="用户名" FontSize="12" Opacity="0.7" Margin="0,8,0,0"/>
+                    <TextBox x:Name="LoginUser" PlaceholderText="admin"/>
+                    <TextBlock Text="密码" FontSize="12" Opacity="0.7" Margin="0,4,0,0"/>
+                    <PasswordBox x:Name="LoginPass"/>
+                    <TextBlock Text="服务器" FontSize="12" Opacity="0.7" Margin="0,4,0,0"/>
+                    <TextBox x:Name="LoginServer" FontSize="12"/>
+
+                    <TextBlock x:Name="LoginError" Text="" FontSize="12"
+                               Foreground="{ThemeResource IslandDangerBrush}"
+                               TextWrapping="Wrap" Visibility="Collapsed"/>
+                    <Button x:Name="LoginBtn" Content="登录" Click="OnLoginClick"
+                            HorizontalAlignment="Stretch" CornerRadius="8"
+                            Background="{ThemeResource IslandAccentBrush}" Foreground="White"
+                            Margin="0,6,0,0"/>
+                </StackPanel>
+            </Border>
         </Grid>
     </Grid>
 </Window>

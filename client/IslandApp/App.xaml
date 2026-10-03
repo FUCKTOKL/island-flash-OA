@@ -9,6 +9,9 @@
                 <!-- WinUI 控件默认样式（必需） -->
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
             </ResourceDictionary.MergedDictionaries>
+            <!-- 设计令牌：单一强调色（翠绿，饱和度克制），中性基底走 Mica -->
+            <SolidColorBrush x:Key="IslandAccentBrush" Color="#FF35A078" />
+            <SolidColorBrush x:Key="IslandDangerBrush" Color="#FFE5484D" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>
