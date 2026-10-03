@@ -12,28 +12,13 @@
           PointerReleased="OnRootPointerReleased">
 
         <!-- ================= 胶囊态（216×36） ================= -->
+        <!-- 胶囊态：极简把手（拍板：收起只留“-”）；未读时叠红点 -->
         <Grid x:Name="CapsulePanel" Height="36">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-
-            <!-- 时间（1 秒刷新；胶囊点击整窗展开、按住拖动换位） -->
-            <TextBlock x:Name="TimeText" Grid.Column="0" Text="00:00"
-                       FontSize="15" FontWeight="SemiBold"
-                       Margin="14,0,10,0" VerticalAlignment="Center"/>
-            <!-- 正在播放：SMTC 接入后填充歌名（跑马灯 P1） -->
-            <TextBlock x:Name="TrackText" Grid.Column="1" Text="未在播放"
-                       FontSize="12" Opacity="0.65" TextTrimming="CharacterEllipsis"
-                       VerticalAlignment="Center"/>
-            <FontIcon Grid.Column="2" Glyph="&#xE8D6;" FontSize="13" Opacity="0.65"
-                      Margin="8,0,0,0" VerticalAlignment="Center"/>
-            <!-- 未读角标：审批+消息合并计数，WS 接入后显示 -->
-            <Border x:Name="Badge" Grid.Column="3" CornerRadius="8" Background="#E5484D"
-                    MinWidth="16" Height="16" Margin="6,0,10,0" VerticalAlignment="Center"
-                    Visibility="Collapsed">
+            <Border Width="36" Height="4" CornerRadius="2" Background="#80FFFFFF"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <Border x:Name="Badge" CornerRadius="8" Background="#E5484D"
+                    MinWidth="16" Height="16" Margin="14,2,0,0" VerticalAlignment="Top"
+                    HorizontalAlignment="Center" Visibility="Collapsed">
                 <TextBlock x:Name="BadgeText" Text="0" FontSize="10" Foreground="White"
                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
@@ -95,13 +80,46 @@
                     Background="#991E2024" BorderBrush="#22FFFFFF" BorderThickness="1" Padding="18">
                 <Grid x:Name="ContentHost">
 
-                <!-- P1 工作台（小组件仪表盘，默认页） -->
-                <StackPanel x:Name="Page0" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
-                    <FontIcon Glyph="&#xE80F;" FontSize="36" Opacity="0.6"/>
-                    <TextBlock Text="工作台" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center"/>
-                    <TextBlock Text="小组件仪表盘 · 天气/待办/照片/音乐/启动器/审批" Opacity="0.55" HorizontalAlignment="Center"/>
-                    <TextBlock Text="（服务接入后填充）" Opacity="0.35" FontSize="12" HorizontalAlignment="Center"/>
-                </StackPanel>
+                <!-- P1 工作台：待办岛 + 天气岛（后续组件化进 Widgets/） -->
+                <Grid x:Name="Page0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- 待办岛 -->
+                    <Border Grid.Column="0" CornerRadius="14" Background="#66262A32"
+                            BorderBrush="#1AFFFFFF" BorderThickness="1" Padding="14" Margin="0,0,8,0">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="待办" FontSize="14" FontWeight="SemiBold"/>
+                            <Grid Grid.Row="1" Margin="0,8,0,10" ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="TodoInput" PlaceholderText="添加一条待办…" FontSize="12"/>
+                                <Button Grid.Column="1" Content="添加" Click="OnAddTodoClick"
+                                        CornerRadius="6" Padding="14,6" FontSize="12"/>
+                            </Grid>
+                            <StackPanel x:Name="TodoList" Grid.Row="2" Spacing="8"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- 天气岛 -->
+                    <Border Grid.Column="1" CornerRadius="14" Background="#66262A32"
+                            BorderBrush="#1AFFFFFF" BorderThickness="1" Padding="14" Margin="8,0,0,0">
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="天气 · 北京" FontSize="14" FontWeight="SemiBold"/>
+                            <TextBlock x:Name="WeatherNow" Text="—" FontSize="30" FontWeight="SemiBold" Margin="0,10,0,0"/>
+                            <TextBlock x:Name="WeatherDetail" Text="加载中…" Opacity="0.6" FontSize="12"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
 
                 <!-- P2 文件页（左公共 45% / 右个人 55%） -->
                 <StackPanel x:Name="Page1" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">

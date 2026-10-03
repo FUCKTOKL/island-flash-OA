@@ -23,6 +23,8 @@ namespace winrt::IslandApp::implementation
                                    Microsoft::UI::Xaml::Input::PointerRoutedEventArgs const& e);
         void OnLoginClick(Windows::Foundation::IInspectable const&,
                           Microsoft::UI::Xaml::RoutedEventArgs const&);
+        void OnAddTodoClick(Windows::Foundation::IInspectable const&,
+                            Microsoft::UI::Xaml::RoutedEventArgs const&);
 
     private:
         // ---- 壳生命周期 ----
@@ -40,11 +42,14 @@ namespace winrt::IslandApp::implementation
         winrt::fire_and_forget AfterLogin(winrt::hstring token); // 拉个人信息 + WS 连接
         void OnWsEvent(winrt::hstring const& type);              // WS 推送分发（UI 线程）
         void UpdateBadge();                                       // 胶囊未读角标
+        winrt::fire_and_forget LoadTodos();                       // 工作台：待办岛
+        winrt::fire_and_forget LoadWeather();                     // 工作台：天气岛（Open-Meteo 直连）
+        winrt::fire_and_forget ToggleTodo(int id);                // 勾选完成 → PUT done
+        winrt::fire_and_forget AddTodo();                          // 快速添加（协程，XAML 事件只做 void 转发）
+        void AddTodoRow(int id, winrt::hstring const& content);   // 待办行（无绑定，直建控件）
 
-        void UpdateClock();
         void OnRootLoaded(Windows::Foundation::IInspectable const&,
                           Microsoft::UI::Xaml::RoutedEventArgs const&); // Root 加载完再初始化壳
-        void OnClockTick(Windows::Foundation::IInspectable const&, Windows::Foundation::IInspectable const&);
         void OnAnimTick(Windows::Foundation::IInspectable const&, Windows::Foundation::IInspectable const&);
         void OnActivated(Windows::Foundation::IInspectable const&,
                          Microsoft::UI::Xaml::WindowActivatedEventArgs const& args);
@@ -62,7 +67,6 @@ namespace winrt::IslandApp::implementation
         winrt::Windows::Foundation::Point m_dragStart{ -1, -1 }; // 按下点（窗口内坐标）
         int32_t m_dragOriginX{ 0 }, m_dragOriginY{ 0 };       // 按下时窗口位置
         int m_frame{ 0 };            // 动画帧计数
-        winrt::Microsoft::UI::Dispatching::DispatcherQueueTimer m_clock{ nullptr };     // 秒时钟
         winrt::Microsoft::UI::Dispatching::DispatcherQueueTimer m_animTimer{ nullptr }; // 60fps 动画
         bool m_loginMode{ false }; // 登录态（无 token 时展开仅登录卡）
         ifoa::ApiClient m_api;     // 后端 API 客户端（Windows.Web.Http）

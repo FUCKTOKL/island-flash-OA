@@ -28,6 +28,16 @@ namespace ifoa
         winrt::Windows::Foundation::IAsyncOperation<winrt::hstring>
             GetAsync(winrt::hstring const& path);
 
+        // POST/PUT JSON：200 返回 body，否则空串 + LastError
+        winrt::Windows::Foundation::IAsyncOperation<winrt::hstring>
+            PostAsync(winrt::hstring const& path, winrt::hstring const& json);
+        winrt::Windows::Foundation::IAsyncOperation<winrt::hstring>
+            PutAsync(winrt::hstring const& path, winrt::hstring const& json);
+
+        // 直连外部 URL（天气 Open-Meteo，不走后端）：返回 body 或空串
+        winrt::Windows::Foundation::IAsyncOperation<winrt::hstring>
+            GetUrlAsync(winrt::hstring const& url);
+
         // ---- 持久化（注册表 HKCU\Software\IF-OA\Island）----
         // token 用 DPAPI 加密：PasswordVault 需要包标识，解包应用用不了
         static void SaveToken(winrt::hstring const& token);
@@ -48,6 +58,56 @@ namespace ifoa
         if (!m_http) m_http = winrt::Windows::Web::Http::HttpClient();
         m_http.DefaultRequestHeaders().Clear(); // 重登录防重复叠加
         m_http.DefaultRequestHeaders().Append(L"Authorization", L"Bearer " + std::wstring(token));
+    }
+
+    // ================= POST/PUT/外连（与 GetAsync 同套路，不重复注释） =================
+
+    inline winrt::Windows::Foundation::IAsyncOperation<winrt::hstring>
+        ApiClient::PostAsync(winrt::hstring const& path, winrt::hstring const& json)
+    {
+        using namespace winrt::Windows::Web::Http;
+        m_lastError = L"";
+        try
+        {
+            if (!m_http) m_http = HttpClient();
+            HttpStringContent content(json, winrt::Windows::Storage::Streams::UnicodeEncoding::Utf8,
+                                      L"application/json");
+            auto resp = co_await m_http.PostAsync(winrt::Windows::Foundation::Uri(m_base + path), content);
+            co_return co_await resp.Content().ReadAsStringAsync();
+        }
+        catch (...) { m_lastError = L"请求失败"; co_return L""; }
+    }
+
+    inline winrt::Windows::Foundation::IAsyncOperation<winrt::hstring>
+        ApiClient::PutAsync(winrt::hstring const& path, winrt::hstring const& json)
+    {
+        using namespace winrt::Windows::Web::Http;
+        m_lastError = L"";
+        try
+        {
+            if (!m_http) m_http = HttpClient();
+            HttpStringContent content(json, winrt::Windows::Storage::Streams::UnicodeEncoding::Utf8,
+                                      L"application/json");
+            auto resp = co_await m_http.PutAsync(winrt::Windows::Foundation::Uri(m_base + path), content);
+            co_return co_await resp.Content().ReadAsStringAsync();
+        }
+        catch (...) { m_lastError = L"请求失败"; co_return L""; }
+    }
+
+    inline winrt::Windows::Foundation::IAsyncOperation<winrt::hstring>
+        ApiClient::GetUrlAsync(winrt::hstring const& url)
+    {
+        using namespace winrt::Windows::Web::Http;
+        m_lastError = L"";
+        try
+        {
+            if (!m_http) m_http = HttpClient();
+            auto resp = co_await m_http.GetAsync(winrt::Windows::Foundation::Uri(url));
+            if (resp.IsSuccessStatusCode()) co_return co_await resp.Content().ReadAsStringAsync();
+            m_lastError = L"HTTP " + std::to_wstring(static_cast<int>(resp.StatusCode()));
+        }
+        catch (...) { m_lastError = L"无法访问外部服务"; }
+        co_return L"";
     }
 
     inline winrt::Windows::Foundation::IAsyncOperation<winrt::hstring>

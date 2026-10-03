@@ -21,7 +21,7 @@ namespace winrt::IslandApp::implementation
     // ---- 布局常量（docs/02 §二，物理像素）----
     constexpr int32_t CAP_W = 216, CAP_H = 36;   // 胶囊态
     constexpr int32_t EXP_W = 1280, EXP_H = 480; // 展开态
-    constexpr int32_t TOP_MARGIN = 8;            // 距工作区顶部
+    constexpr int32_t TOP_MARGIN = 0;            // 岛贴屏幕上边缘（拍板：不留空隙）
     constexpr int32_t ANIM_FRAMES = 13;          // 220ms @ 60fps（docs/02 实现要点）
     constexpr int32_t DRAG_THRESHOLD = 6;        // 位移超过此值 = 拖动，否则 = 点击
 
@@ -55,7 +55,6 @@ namespace winrt::IslandApp::implementation
     {
         InitializeComponent();
         m_dq = this->DispatcherQueue(); // WS 事件编回 UI 线程用
-        LogDiag("ctor-xaml-ok\n");
 
         // Esc 收起（Accelerator 挂根元素，无需焦点管理；docs/02 状态机）
         Input::KeyboardAccelerator esc;
@@ -70,33 +69,18 @@ namespace winrt::IslandApp::implementation
         // （GetForCurrentThread 在解包启动链路上会返回空 → 空指针崩溃）
         auto dq = this->DispatcherQueue();
         m_animTimer = dq.CreateTimer();
-        m_clock = dq.CreateTimer();
-        LogDiag("ctor-timers-ok\n");
         m_animTimer.Interval(std::chrono::milliseconds{ 16 });
         m_animTimer.Tick({ this, &IslandWindow::OnAnimTick });
-
-        // 秒级时钟（胶囊态时间）
-        m_clock = dq.CreateTimer();
-        m_clock.Interval(std::chrono::seconds{ 1 });
-        m_clock.Tick({ this, &IslandWindow::OnClockTick });
-        m_clock.Start();
-        LogDiag("ctor-clock-start\n");
 
         /* SetupShell 延迟到 Root Loaded：构造期可组合基类 inner 尚未挂接，
         try_as<IWindowNative> 会返回空导致空指针崩溃（0xC0000005） */
         Root().Loaded({ this, &IslandWindow::OnRootLoaded });
-        LogDiag("ctor-loaded-hook\n");
 
-        UpdateClock();
-        LogDiag("ctor-clock-set\n");
         SelectTab(0);
-        LogDiag("ctor-tab0\n");
-        LogDiag("ctor-done\n");
     }
 
     void IslandWindow::OnRootLoaded(IInspectable const&, RoutedEventArgs const&)
     {
-        LogDiag("root-loaded\n");
         try
         {
             SetupShell();
@@ -327,6 +311,10 @@ namespace winrt::IslandApp::implementation
         }
         m_ws.Start(m_api.Base(), token, m_dq,
                    [this](winrt::hstring type) { OnWsEvent(type); });
+
+        // 工作台小组件：待办 + 天气
+        LoadTodos();
+        LoadWeather();
     }
 
     void IslandWindow::OnWsEvent(winrt::hstring const& type)
@@ -343,6 +331,134 @@ namespace winrt::IslandApp::implementation
     {
         BadgeText().Text(winrt::hstring(std::to_wstring(m_unread)));
         Badge().Visibility(m_unread > 0 ? Visibility::Visible : Visibility::Collapsed);
+    }
+
+    // ============ 工作台小组件（v1 内联；后续组件化进 Widgets/） ============
+
+    // WMO 天气码 → 中文（覆盖常用段，懒人映射）
+    static wchar_t const* WmoText(int code)
+    {
+        if (code == 0) return L"晴";
+        if (code <= 2) return L"多云";
+        if (code == 3) return L"阴";
+        if (code <= 48) return L"雾";
+        if (code < 60) return L"毛毛雨";
+        if (code < 70) return L"雨";
+        if (code < 80) return L"雪";
+        if (code < 90) return L"阵雨";
+        return L"雷暴";
+    }
+
+    winrt::fire_and_forget IslandWindow::LoadWeather()
+    {
+        auto lifetime = get_strong();
+        // ponytail: 城市写死北京；设置中心做好后从注册表读 lat/lon
+        auto body = co_await m_api.GetUrlAsync(
+            L"https://api.open-meteo.com/v1/forecast?latitude=39.9042&longitude=116.4074"
+            L"&daily=temperature_2m_max,temperature_2m_min,weather_code&timezone=auto&forecast_days=2");
+        if (body.empty())
+        {
+            WeatherNow().Text(L"—");
+            WeatherDetail().Text(L"获取失败");
+            co_return;
+        }
+        try
+        {
+            auto d = winrt::Windows::Data::Json::JsonObject::Parse(body).GetNamedObject(L"daily");
+            auto num = [](winrt::Windows::Data::Json::IJsonValue const& v)
+                { return static_cast<int>(std::lround(v.GetNumber())); };
+            auto const& codes = d.GetNamedArray(L"weather_code");
+            auto const& maxs = d.GetNamedArray(L"temperature_2m_max");
+            auto const& mins = d.GetNamedArray(L"temperature_2m_min");
+
+            std::wstring now = std::to_wstring(num(maxs.GetAt(0))) + L"° · " + WmoText(num(codes.GetAt(0)));
+            std::wstring det = L"明天 " + std::to_wstring(num(maxs.GetAt(1))) + L"° / "
+                + std::to_wstring(num(mins.GetAt(1))) + L"° · " + WmoText(num(codes.GetAt(1)));
+            WeatherNow().Text(winrt::hstring(now));
+            WeatherDetail().Text(winrt::hstring(det));
+        }
+        catch (...) { WeatherDetail().Text(L"解析失败"); }
+    }
+
+    void IslandWindow::AddTodoRow(int id, winrt::hstring const& content)
+    {
+        auto row = Controls::StackPanel();
+        row.Orientation(Controls::Orientation::Horizontal);
+        row.Spacing(8);
+
+        auto tb = Controls::TextBlock();
+        tb.Text(content);
+        tb.FontSize(13);
+        tb.TextTrimming(TextTrimming::CharacterEllipsis); // 在 Xaml 命名空间，非 Controls
+        tb.MaxWidth(320);
+
+        auto chk = Controls::CheckBox();
+        chk.Checked([this, id](IInspectable const&, RoutedEventArgs const&) { ToggleTodo(id); });
+
+        row.Children().Append(chk);
+        row.Children().Append(tb);
+        TodoList().Children().Append(row);
+    }
+
+    winrt::fire_and_forget IslandWindow::LoadTodos()
+    {
+        auto lifetime = get_strong();
+        auto body = co_await m_api.GetAsync(L"/todos");
+        TodoList().Children().Clear();
+        if (body.empty())
+        {
+            auto tb = Controls::TextBlock();
+            tb.Text(L"（加载失败）");
+            tb.FontSize(12);
+            tb.Opacity(0.5);
+            TodoList().Children().Append(tb);
+            co_return;
+        }
+        try
+        {
+            int shown = 0;
+            for (auto const& v : winrt::Windows::Data::Json::JsonArray::Parse(body))
+            {
+                auto o = v.GetObject();
+                if (o.GetNamedBoolean(L"done")) continue; // docs/02：只看未完成前 5 条
+                if (shown++ >= 5) break;
+                AddTodoRow(static_cast<int>(o.GetNamedNumber(L"id")), o.GetNamedString(L"content"));
+            }
+            if (shown == 0)
+            {
+                auto tb = Controls::TextBlock();
+                tb.Text(L"无待办，添加一条？");
+                tb.FontSize(12);
+                tb.Opacity(0.5);
+                TodoList().Children().Append(tb);
+            }
+        }
+        catch (...) {}
+    }
+
+    winrt::fire_and_forget IslandWindow::ToggleTodo(int id)
+    {
+        auto lifetime = get_strong();
+        std::wstring p = L"/todos/" + std::to_wstring(id);
+        co_await m_api.PutAsync(winrt::hstring(p), L"{\"done\":true}");
+        LoadTodos();
+    }
+
+    void IslandWindow::OnAddTodoClick(IInspectable const&, RoutedEventArgs const&)
+    {
+        AddTodo();
+    }
+
+    winrt::fire_and_forget IslandWindow::AddTodo()
+    {
+        auto lifetime = get_strong();
+        auto content = TodoInput().Text();
+        if (content.empty()) co_return;
+        winrt::Windows::Data::Json::JsonObject o;
+        o.Insert(L"content", winrt::Windows::Data::Json::JsonValue::CreateStringValue(content));
+        co_await m_api.PostAsync(L"/todos", o.Stringify());
+        TodoInput().Text(L"");
+        LoadTodos();
     }
 
     winrt::fire_and_forget IslandWindow::DoLogin()
@@ -450,26 +566,9 @@ namespace winrt::IslandApp::implementation
         else SavePosition();         // 拖动结束 → 持久化位置
     }
 
-    // ================= 时钟 / 失活 =================
-    void IslandWindow::OnClockTick(IInspectable const&, IInspectable const&)
-    {
-        UpdateClock();
-    }
-
-    void IslandWindow::UpdateClock()
-    {
-        // GetLocalTime + swprintf：零 WinRT 激活（DateTimeFormatter 模板串/格式串陷阱多，
-        // "HH:mm" 会抛 E_INVALIDARG）
-        SYSTEMTIME st{};
-        GetLocalTime(&st);
-        wchar_t buf[8]{};
-        swprintf_s(buf, L"%02hu:%02hu", st.wHour, st.wMinute);
-        TimeText().Text(buf);
-    }
-
+    // ================= 失活收起 =================
     void IslandWindow::OnActivated(IInspectable const&, WindowActivatedEventArgs const& args)
     {
-        LogDiag("activated\n");
         if (args.WindowActivationState() == WindowActivationState::Deactivated)
         {
             Collapse(); // 点击窗外 → 收起；胶囊态时 Collapse 自带守卫，无副作用
