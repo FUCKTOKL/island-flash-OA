@@ -18,6 +18,8 @@
 #include <winrt/Microsoft.UI.Xaml.Media.h>
 // 指针事件（PointerPoint.Properties 在 Microsoft.UI.Input）
 #include <winrt/Microsoft.UI.Input.h>
+// Window::DispatcherQueue() 返回 WASDK 新调度器类型
+#include <winrt/Microsoft.UI.Dispatching.h>
 // 窗口管理（AppWindow / OverlappedPresenter / DisplayArea）
 #include <winrt/Microsoft.UI.Windowing.h>
 // XAML-Composition 互操作（ElementCompositionPreview；WASDK 的 Composition 在 Microsoft.UI.Composition）

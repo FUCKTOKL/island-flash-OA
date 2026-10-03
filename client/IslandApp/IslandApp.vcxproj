@@ -74,6 +74,9 @@
     <Link>
       <!-- 入口为 wWinMain（解包 WinUI3 惯例） -->
       <SubSystem>Windows</SubSystem>
+      <!-- 生成 map 文件：崩溃地址→函数名定位用 -->
+      <GenerateMapFile>true</GenerateMapFile>
+      <MapExports>true</MapExports>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

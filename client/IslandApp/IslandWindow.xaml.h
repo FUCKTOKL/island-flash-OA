@@ -53,8 +53,8 @@ namespace winrt::IslandApp::implementation
         winrt::Windows::Foundation::Point m_dragStart{ -1, -1 }; // 按下点（窗口内坐标）
         int32_t m_dragOriginX{ 0 }, m_dragOriginY{ 0 };       // 按下时窗口位置
         int m_frame{ 0 };            // 动画帧计数
-        winrt::Windows::System::DispatcherQueueTimer m_clock{ nullptr };     // 秒时钟
-        winrt::Windows::System::DispatcherQueueTimer m_animTimer{ nullptr }; // 60fps 动画
+        winrt::Microsoft::UI::Dispatching::DispatcherQueueTimer m_clock{ nullptr };     // 秒时钟
+        winrt::Microsoft::UI::Dispatching::DispatcherQueueTimer m_animTimer{ nullptr }; // 60fps 动画
     };
 }
 

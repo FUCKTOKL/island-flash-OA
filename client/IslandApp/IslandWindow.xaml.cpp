@@ -35,9 +35,26 @@ namespace winrt::IslandApp::implementation
         return { L(a.X, b.X), L(a.Y, b.Y), L(a.Width, b.Width), L(a.Height, b.Height) };
     }
 
+    // 诊断日志：追加到 %TEMP%\ifoa-island-crash.log（定位启动期异常用）
+    static void LogDiag(char const* msg)
+    {
+        char path[MAX_PATH]{};
+        if (GetTempPathA(MAX_PATH, path))
+        {
+            strcat_s(path, "ifoa-island-crash.log");
+            HANDLE f = CreateFileA(path, FILE_APPEND_DATA, 0, nullptr,
+                                   OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+            if (f != INVALID_HANDLE_VALUE)
+            {
+                DWORD w{}; WriteFile(f, msg, (DWORD)strlen(msg), &w, nullptr); CloseHandle(f);
+            }
+        }
+    }
+
     IslandWindow::IslandWindow()
     {
         InitializeComponent();
+        LogDiag("ctor-xaml-ok\n");
 
         // Esc 收起（Accelerator 挂根元素，无需焦点管理；docs/02 状态机）
         Input::KeyboardAccelerator esc;
@@ -48,28 +65,53 @@ namespace winrt::IslandApp::implementation
         // 失活收起：点击窗外 = Deactivated（docs/02 状态机）
         Activated({ this, &IslandWindow::OnActivated });
 
-        // 60fps 动画定时器（两态切换逐帧 Resize）
-        m_animTimer = Windows::System::DispatcherQueue::GetForCurrentThread().CreateTimer();
+        // 60fps 动画定时器（两态切换逐帧 Resize）；从 Window 自身取调度器
+        // （GetForCurrentThread 在解包启动链路上会返回空 → 空指针崩溃）
+        auto dq = this->DispatcherQueue();
+        m_animTimer = dq.CreateTimer();
+        m_clock = dq.CreateTimer();
+        LogDiag("ctor-timers-ok\n");
         m_animTimer.Interval(std::chrono::milliseconds{ 16 });
         m_animTimer.Tick({ this, &IslandWindow::OnAnimTick });
 
         // 秒级时钟（胶囊态时间）
-        m_clock = Windows::System::DispatcherQueue::GetForCurrentThread().CreateTimer();
+        m_clock = dq.CreateTimer();
         m_clock.Interval(std::chrono::seconds{ 1 });
         m_clock.Tick({ this, &IslandWindow::OnClockTick });
         m_clock.Start();
+        LogDiag("ctor-clock-start\n");
 
         /* SetupShell 延迟到 Root Loaded：构造期可组合基类 inner 尚未挂接，
         try_as<IWindowNative> 会返回空导致空指针崩溃（0xC0000005） */
         Root().Loaded({ this, &IslandWindow::OnRootLoaded });
+        LogDiag("ctor-loaded-hook\n");
 
         UpdateClock();
+        LogDiag("ctor-clock-set\n");
         SelectTab(0);
+        LogDiag("ctor-tab0\n");
+        LogDiag("ctor-done\n");
     }
 
     void IslandWindow::OnRootLoaded(IInspectable const&, RoutedEventArgs const&)
     {
-        SetupShell();
+        LogDiag("root-loaded\n");
+        try
+        {
+            SetupShell();
+        }
+        catch (winrt::hresult_error const& e)
+        {
+            // XAML 回调里未处理异常会 fail-fast(0xC0000409)，先拦下记录现场
+            char buf[256]{};
+            sprintf_s(buf, "SetupShell hr=0x%08lX msg=%ws\n",
+                      static_cast<unsigned long>(e.code().value), e.message().c_str());
+            LogDiag(buf);
+        }
+        catch (...)
+        {
+            LogDiag("SetupShell unknown-exception\n");
+        }
     }
 
     // ================= 壳初始化 =================
@@ -239,6 +281,8 @@ namespace winrt::IslandApp::implementation
     // P1 升级路径 = Controls/SegmentedTabs（选中指示条滑动 + 内容横移淡入，docs/02 §三）
     void IslandWindow::SelectTab(int idx)
     {
+        try
+        {
         Page0().Visibility(idx == 0 ? Visibility::Visible : Visibility::Collapsed);
         Page1().Visibility(idx == 1 ? Visibility::Visible : Visibility::Collapsed);
         Page2().Visibility(idx == 2 ? Visibility::Visible : Visibility::Collapsed);
@@ -248,6 +292,14 @@ namespace winrt::IslandApp::implementation
         Tab1().FontWeight(idx == 1 ? winrt::Microsoft::UI::Text::FontWeights::Bold() : winrt::Microsoft::UI::Text::FontWeights::Normal());
         Tab2().FontWeight(idx == 2 ? winrt::Microsoft::UI::Text::FontWeights::Bold() : winrt::Microsoft::UI::Text::FontWeights::Normal());
         Tab3().FontWeight(idx == 3 ? winrt::Microsoft::UI::Text::FontWeights::Bold() : winrt::Microsoft::UI::Text::FontWeights::Normal());
+        }
+        catch (winrt::hresult_error const& e)
+        {
+            char buf[192]{};
+            sprintf_s(buf, "SelectTab hr=0x%08lX %ws\n",
+                      static_cast<unsigned long>(e.code().value), e.message().c_str());
+            LogDiag(buf);
+        }
     }
 
     // ================= 胶囊拖动 / 点击 =================
@@ -307,12 +359,18 @@ namespace winrt::IslandApp::implementation
 
     void IslandWindow::UpdateClock()
     {
-        Windows::Globalization::DateTimeFormatting::DateTimeFormatter fmt(L"HH:mm");
-        TimeText().Text(fmt.Format(winrt::clock::now()));
+        // GetLocalTime + swprintf：零 WinRT 激活（DateTimeFormatter 模板串/格式串陷阱多，
+        // "HH:mm" 会抛 E_INVALIDARG）
+        SYSTEMTIME st{};
+        GetLocalTime(&st);
+        wchar_t buf[8]{};
+        swprintf_s(buf, L"%02hu:%02hu", st.wHour, st.wMinute);
+        TimeText().Text(buf);
     }
 
     void IslandWindow::OnActivated(IInspectable const&, WindowActivatedEventArgs const& args)
     {
+        LogDiag("activated\n");
         if (args.WindowActivationState() == WindowActivationState::Deactivated)
         {
             Collapse(); // 点击窗外 → 收起；胶囊态时 Collapse 自带守卫，无副作用
