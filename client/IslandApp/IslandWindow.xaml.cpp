@@ -146,8 +146,9 @@ namespace winrt::IslandApp::implementation
         DWM_WINDOW_CORNER_PREFERENCE corner = DWMWCP_ROUND;
         DwmSetWindowAttribute(m_hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, &corner, sizeof(corner));
 
-        // Mica 背景（深浅色跟随系统；Win10 19041 自动回退不透明，docs/02 §三）
-        SystemBackdrop(Media::MicaBackdrop{});
+        // 整窗毛玻璃（Apple 风）；Win10/关闭透明效果时自动回退不透明
+        // ponytail: 每个组件再用半透明 Border 叠出“岛”层次
+        SystemBackdrop(winrt::Microsoft::UI::Xaml::Media::DesktopAcrylicBackdrop{});
 
         // 初始位置：优先用持久化值，否则主屏顶部居中；始终钳制在工作区内
         auto wa = WorkArea();

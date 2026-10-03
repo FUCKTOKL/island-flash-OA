@@ -40,15 +40,16 @@
         </Grid>
 
         <!-- ================= 展开态（1280×480） ================= -->
-        <Grid x:Name="ExpandedPanel" Visibility="Collapsed" IsHitTestVisible="False">
+        <Grid x:Name="ExpandedPanel" Visibility="Collapsed" IsHitTestVisible="False" Padding="12,8,12,12">
             <Grid.RowDefinitions>
                 <RowDefinition Height="44"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <!-- 44px 页签栏：左 4 页签，右 [—] 收起 -->
-            <Grid Grid.Row="0">
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0">
+            <!-- 页签岛：悬浮毛玻璃胶囊（Apple 风：组件即岛） -->
+            <Border Grid.Row="0" Height="40" CornerRadius="20" HorizontalAlignment="Center"
+                    Background="#D91E2024" BorderBrush="#2EFFFFFF" BorderThickness="1" Padding="8,0">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <Button x:Name="Tab0" Tag="0" Click="OnTabClick" Background="Transparent"
                             CornerRadius="6" Padding="12,6" Margin="0,0,4,0">
                         <StackPanel Orientation="Horizontal" Spacing="6">
@@ -78,14 +79,21 @@
                         </StackPanel>
                     </Button>
                 </StackPanel>
-                <Button x:Name="CollapseBtn" Content="—"
-                        Click="OnCollapseClick" ToolTipService.ToolTip="收起（Esc）"
-                        Background="Transparent" CornerRadius="6" Padding="10,4"
-                        HorizontalAlignment="Right" Margin="0,0,10,0" VerticalAlignment="Center"/>
-            </Grid>
+            </Border>
 
-            <!-- 内容宿主：展开时 Composition scale 0.92→1 + 淡入 -->
-            <Grid x:Name="ContentHost" Grid.Row="1">
+            <!-- 收起：独立小圆岛 -->
+            <Border Grid.Row="0" Width="30" Height="30" CornerRadius="15" HorizontalAlignment="Right"
+                    VerticalAlignment="Center" Background="#D91E2024" BorderBrush="#2EFFFFFF" BorderThickness="1">
+                <Button x:Name="CollapseBtn" Content="—" FontSize="12"
+                        Click="OnCollapseClick" ToolTipService.ToolTip="收起（Esc）"
+                        Background="Transparent" BorderThickness="0" CornerRadius="15"
+                        HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+            </Border>
+
+            <!-- 内容岛：整块毛玻璃面板 -->
+            <Border Grid.Row="1" CornerRadius="18" Margin="0,8,0,0"
+                    Background="#991E2024" BorderBrush="#22FFFFFF" BorderThickness="1" Padding="18">
+                <Grid x:Name="ContentHost">
 
                 <!-- P1 工作台（小组件仪表盘，默认页） -->
                 <StackPanel x:Name="Page0" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
@@ -118,13 +126,14 @@
                     <TextBlock Text="资料/头像/密码 + 设置中心" Opacity="0.55" HorizontalAlignment="Center"/>
                     <TextBlock Text="（登录卡在无 token 时强制展示，服务接入后实现）" Opacity="0.35" FontSize="12" HorizontalAlignment="Center"/>
                 </StackPanel>
-            </Grid>
+                </Grid>
+            </Border>
         </Grid>
 
         <!-- ================= 登录卡（无 token 时强制展开；docs/02 §四） ================= -->
         <Grid x:Name="LoginPanel" Visibility="Collapsed">
-            <Border Width="300" Padding="28,24" CornerRadius="16"
-                    Background="#F2202226" BorderBrush="#26FFFFFF" BorderThickness="1"
+            <Border Width="300" Padding="28,24" CornerRadius="20"
+                    Background="#E61B1D22" BorderBrush="#33FFFFFF" BorderThickness="1"
                     HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="10">
                     <FontIcon Glyph="&#xE7B8;" FontSize="28" Foreground="{ThemeResource IslandAccentBrush}"/>
