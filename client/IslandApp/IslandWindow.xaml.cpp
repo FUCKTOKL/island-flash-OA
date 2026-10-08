@@ -792,8 +792,8 @@ namespace winrt::IslandApp::implementation
         Tab2().FontWeight(idx == 2 ? winrt::Microsoft::UI::Text::FontWeights::Bold() : winrt::Microsoft::UI::Text::FontWeights::Normal());
         Tab3().FontWeight(idx == 3 ? winrt::Microsoft::UI::Text::FontWeights::Bold() : winrt::Microsoft::UI::Text::FontWeights::Normal());
 
-        // 选中页签 = 青绿微光药丸（叠加在毛玻璃页签岛上）
-        auto sel = Media::SolidColorBrush(Windows::UI::Color{ 0xFF, 0x2A, 0x3D, 0x35 });
+        // 选中页签 = 薄荷微光药丸（白岛版：浅绿薄染色，黑字清晰）
+        auto sel = Media::SolidColorBrush(Windows::UI::Color{ 0xFF, 0xD9, 0xEE, 0xE3 });
         auto unsel = Media::SolidColorBrush(Windows::UI::Color{ 0, 0, 0, 0 });
         Tab0().Background(idx == 0 ? sel : unsel);
         Tab1().Background(idx == 1 ? sel : unsel);
