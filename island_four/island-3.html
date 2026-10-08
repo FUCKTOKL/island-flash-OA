@@ -2,152 +2,520 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<title>IF-OA · 岛三 · 天平账</title>
+<title>IF-OA · 天平账 · 全账本</title>
 <style>
-/* 天平账 BALANCE LEDGER：胶囊向左右张翼展开（非向下），中央天平柱=天气，
-   左翼=待办（借方），右翼=审批+对话（贷方），数据=账目行。
-   语言基底=单元矩阵 v3.2 冷调毛玻璃。灵感：符号串的 = $ ( ) : 账本等式 */
+/* 天平账 BALANCE LEDGER · 全页版：胶囊=支点，岛向左右张翼；四账页（台账/凭证/往来/名册）
+   + 审批对账浮层。数据=账目行（借方/贷方/往来/凭证），中央=天平柱。
+   语言基底=单元矩阵 v3.2 冷玻璃；支持黑白主题切换（名册·设置·真生效）。 */
+:root{
+  --bg1:#E7ECF2;--bg2:#EDF1F6;--bg3:#E3E9F0;
+  --glass:rgba(246,248,251,.66);--glassHi:rgba(246,248,251,.76);
+  --card:rgba(255,255,255,.5);--cardHi:rgba(255,255,255,.72);
+  --line:rgba(222,227,233,.9);--lineSoft:rgba(227,232,240,.7);
+  --ink:#2E3440;--sub:#7E8A99;--faint:#A0AAB7;--mute:#A8B2BE;
+  --teal:#4FA3A5;--rose:#C74E5C;--pink:#E8A0AC;
+  --smoke:rgba(40,45,54,.78);--smokeHi:rgba(48,54,64,.82);
+  --smokeFg:#EFF3F8;--smokeSub:#98A3B2;
+  --inputBg:rgba(255,255,255,.6);--inputBtn:rgba(240,244,249,.65);
+  --orb1:rgba(79,163,165,.40);--orb2:rgba(127,168,217,.32);
+}
+body.dark{
+  --bg1:#171B23;--bg2:#1D222C;--bg3:#141821;
+  --glass:rgba(38,43,54,.74);--glassHi:rgba(44,50,62,.8);
+  --card:rgba(54,60,74,.55);--cardHi:rgba(60,66,80,.7);
+  --line:rgba(255,255,255,.15);--lineSoft:rgba(255,255,255,.09);
+  --ink:#E8EDF5;--sub:#98A3B2;--faint:#67727F;--mute:#5A6474;
+  --inputBg:rgba(255,255,255,.07);--inputBtn:rgba(255,255,255,.09);
+  --orb1:rgba(79,163,165,.16);--orb2:rgba(127,168,217,.14);
+}
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:linear-gradient(160deg,#E7ECF2,#EDF1F6,#E3E9F0);color:#2E3440;
+body{background:linear-gradient(160deg,var(--bg1),var(--bg2),var(--bg3));color:var(--ink);
   min-height:100vh;display:flex;flex-direction:column;align-items:center;overflow-x:hidden;
-  font:15px/1.6 "Segoe UI Variable Text","Segoe UI",sans-serif}
+  font:15px/1.6 "Segoe UI Variable Text","Segoe UI",sans-serif;transition:background .5s}
 .orb{position:fixed;border-radius:50%;pointer-events:none;filter:blur(4px)}
-.o1{width:560px;height:560px;left:-160px;top:-200px;background:radial-gradient(circle at 40% 40%,rgba(79,163,165,.40),transparent 65%)}
-.o2{width:620px;height:620px;right:-200px;bottom:-260px;background:radial-gradient(circle at 60% 40%,rgba(127,168,217,.32),transparent 65%)}
-.desktop{width:100%;padding:30px 0 78px;position:relative;z-index:1}
-/* 胶囊 = 天平支点顶 */
-.capsule{width:216px;height:36px;margin:0 auto;background:rgba(246,248,251,.6);
-  border:1px solid rgba(222,227,233,.8);border-radius:18px;backdrop-filter:blur(20px) saturate(1.3);
-  display:flex;align-items:center;justify-content:space-between;padding:0 16px;
-  font-size:10px;letter-spacing:3px;color:#7E8A99;cursor:pointer;position:relative;z-index:6}
-.capsule i{font-style:normal;width:8px;height:8px;background:#4FA3A5;border-radius:50%;box-shadow:0 0 8px rgba(79,163,165,.8)}
-.capsule .b{font-size:9px;color:#FFF;background:#C74E5C;padding:0 6px;border-radius:8px}
-/* 支点针 */
-.pivot{width:2px;height:22px;background:rgba(160,170,183,.6);margin:0 auto}
-/* 双翼：从中心向两侧展开 */
-.wings{width:1280px;margin:0 auto;display:grid;grid-template-columns:1fr 300px 1fr;gap:12px;
-  align-items:stretch;animation:spread .8s cubic-bezier(.32,.72,0,1)}
-@keyframes spread{from{transform:scaleX(.06);opacity:0}}
-.wingL,.wingR{display:flex;flex-direction:column;gap:12px}
-/* 中央天平柱（天气） */
-.fulcrum{background:rgba(246,248,251,.66);border:1px solid rgba(222,227,233,.85);
-  backdrop-filter:blur(26px) saturate(1.25);border-radius:16px;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;
-  animation:drop .7s cubic-bezier(.32,.72,0,1) backwards;animation-delay:.25s}
-@keyframes drop{from{transform:translateY(-16px);opacity:0}}
-.fulcrum .n{font-family:"Segoe UI Variable Display",sans-serif;font-size:64px;font-weight:650;line-height:1;letter-spacing:-2px}
-.fulcrum .n em{font-style:normal;font-size:20px;color:#7E8A99}
-.fulcrum .s{font-size:11px;color:#7E8A99;margin-top:8px;text-align:center;line-height:1.6}
-.fulcrum .clock{font-family:"Cascadia Mono",Consolas,monospace;font-size:10px;color:#2E3440;margin-top:10px;letter-spacing:2px}
-/* 模块浮片（v3.2 卡） */
-.card{border:1px solid rgba(222,227,233,.95);border-radius:12px;background:rgba(255,255,255,.5);
+.o1{width:560px;height:560px;left:-160px;top:-200px;background:radial-gradient(circle at 40% 40%,var(--orb1),transparent 65%)}
+.o2{width:620px;height:620px;right:-200px;bottom:-260px;background:radial-gradient(circle at 60% 40%,var(--orb2),transparent 65%)}
+.desktop{width:100%;padding:22px 0 80px;position:relative;z-index:1}
+.capsule{width:216px;height:36px;margin:0 auto;background:var(--glass);border:1px solid var(--line);
+  border-radius:18px;backdrop-filter:blur(20px) saturate(1.3);display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px;font-size:10px;letter-spacing:3px;color:var(--sub);cursor:pointer}
+.capsule i{font-style:normal;width:8px;height:8px;background:var(--teal);border-radius:50%;box-shadow:0 0 8px var(--orb1)}
+.capsule .b{font-size:9px;color:#FFF;background:var(--rose);padding:0 6px;border-radius:8px}
+.pivot{width:2px;height:14px;background:rgba(160,170,183,.6);margin:0 auto}
+.beam{width:1280px;height:1px;margin:0 auto 10px;background:linear-gradient(90deg,transparent,rgba(160,170,183,.7) 12%,rgba(160,170,183,.7) 88%,transparent);position:relative}
+.beam::before,.beam::after{content:"";position:absolute;top:-3px;width:7px;height:7px;border-radius:50%;background:var(--teal)}
+.beam::before{left:calc(25% - 3px)}.beam::after{right:calc(25% - 3px)}
+/* 账页导航：账本索引页签 */
+.chapters{width:1280px;margin:0 auto 10px;display:flex;gap:8px}
+.ch{flex:1;background:var(--card);border:1px solid var(--line);border-radius:10px 10px 0 0;
+  backdrop-filter:blur(14px);padding:7px 10px;font:600 12px/1.4 "Segoe UI Variable Text";color:var(--sub);
+  cursor:pointer;letter-spacing:2px;transition:all .25s cubic-bezier(.32,.72,0,1);border-bottom:0}
+.ch small{display:block;font-family:"Cascadia Mono",monospace;font-size:8px;font-weight:400;letter-spacing:2px;color:var(--faint)}
+.ch:hover{color:var(--ink);background:var(--cardHi)}
+.ch.on{color:var(--ink);background:var(--glassHi);border-radius:10px 10px 0 0}
+.ch.on small{color:var(--teal)}
+/* 页与双翼 */
+.page{display:none;width:1280px;margin:0 auto;animation:spread .55s cubic-bezier(.32,.72,0,1)}
+.page.on{display:grid}
+@keyframes spread{from{transform:scaleX(.96);opacity:0}}
+.wings{display:grid;grid-template-columns:1fr 300px 1fr;gap:12px;align-items:stretch}
+.wingL,.wingR{display:flex;flex-direction:column;gap:12px;min-height:392px}
+.fulcrum{background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(26px) saturate(1.25);
+  border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;gap:4px}
+/* 模块浮片 */
+.card{border:1px solid var(--line);border-radius:12px;background:var(--card);
   backdrop-filter:blur(16px) saturate(1.2);padding:13px 16px;position:relative;
-  box-shadow:0 2px 10px rgba(46,52,64,.05),inset 0 1px 0 rgba(255,255,255,.65);
-  transition:transform .3s cubic-bezier(.32,.72,0,1),box-shadow .3s cubic-bezier(.32,.72,0,1);
-  animation:rise .55s cubic-bezier(.32,.72,0,1) backwards}
-.card:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(46,52,64,.13)}
-@keyframes rise{from{transform:translateY(10px);opacity:0}}
-.lab{font-family:"Cascadia Mono",Consolas,monospace;font-size:10px;letter-spacing:2px;color:#7E8A99;
+  box-shadow:0 2px 10px rgba(46,52,64,.05),inset 0 1px 0 rgba(255,255,255,.5);
+  transition:transform .3s cubic-bezier(.32,.72,0,1),box-shadow .3s cubic-bezier(.32,.72,0,1)}
+.card:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(46,52,64,.12)}
+.lab{font-family:"Cascadia Mono",Consolas,monospace;font-size:10px;letter-spacing:2px;color:var(--sub);
   display:flex;justify-content:space-between;margin-bottom:8px}
-.lab b{color:#2E3440;font-weight:700}
-/* 账目行：编号 | 条目 | 金额/状态 | = 记号 */
-.ledger{display:flex;align-items:baseline;gap:10px;padding:7px 0;border-bottom:1px solid rgba(227,232,240,.7);font-size:14px}
-.ledger .no{font-family:"Cascadia Mono",Consolas,monospace;font-size:9px;color:#A0AAB7;min-width:34px}
-.ledger .sq{width:12px;height:12px;border:2px solid #A8B2BE;border-radius:3px;flex:none;align-self:center}
-.ledger.ok .sq{background:#4FA3A5;border-color:#4FA3A5}
-.ledger.ok .tx{color:#A8B2BE;text-decoration:line-through}
-.ledger .tx{flex:1}
-.ledger .amt{font-family:"Cascadia Mono",Consolas,monospace;font-size:11px;color:#7E8A99}
-.ledger .eq{color:#4FA3A5;font-family:"Cascadia Mono",Consolas,monospace;font-size:11px}
-.tadd{display:flex;margin-top:10px;border:1px solid rgba(216,222,230,.95);border-radius:10px;overflow:hidden}
-.tadd input{flex:1;border:0;background:rgba(255,255,255,.6);padding:7px 11px;font:inherit;outline:none;font-size:13px}
-.tadd button{border:0;border-left:1px solid rgba(216,222,230,.95);background:rgba(240,244,249,.6);font:inherit;font-size:13px;font-weight:650;padding:0 14px;cursor:pointer}
-.tadd button:hover{background:#4FA3A5;color:#FFF}
-/* 审批 hero 烟熏石板（右翼首卡） */
-.appr{background:rgba(40,45,54,.78);color:#EFF3F8;border-color:rgba(40,45,54,.8)}
-.appr:hover{background:rgba(48,54,64,.8);box-shadow:0 14px 34px rgba(46,52,64,.28)}
-.appr .lab{color:#98A3B2}.appr .lab b{color:#EFF3F8}
+.lab b{color:var(--ink);font-weight:700}
+/* 账目行 */
+.ledger{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--lineSoft);font-size:14px;cursor:pointer}
+.ledger:hover .tx{color:var(--teal)}
+.ledger .no{font-family:"Cascadia Mono",monospace;font-size:9px;color:var(--faint);min-width:34px}
+.ledger .sq{width:12px;height:12px;border:2px solid var(--mute);border-radius:3px;flex:none;transition:all .2s}
+.ledger.ok .sq{background:var(--teal);border-color:var(--teal)}
+.ledger.ok .tx{color:var(--mute);text-decoration:line-through}
+.ledger .tx{flex:1;transition:color .2s}
+.ledger .amt{font-family:"Cascadia Mono",monospace;font-size:11px;color:var(--sub)}
+.ledger .eq{color:var(--teal);font-family:"Cascadia Mono",monospace;font-size:11px}
+.ledger .act{font-size:10px;border:1px solid var(--line);border-radius:7px;padding:1px 8px;color:var(--sub);
+  cursor:pointer;background:var(--inputBtn);transition:all .2s}
+.ledger .act:hover{border-color:var(--teal);color:var(--teal)}
+.ledger .act.del:hover{border-color:var(--rose);color:var(--rose)}
+.ledger.sel{background:var(--cardHi);border-radius:8px;padding-left:6px}
+.ledger .star{color:var(--faint);cursor:pointer;font-size:12px}
+.ledger .star.on{color:var(--pink)}
+.tadd{display:flex;margin-top:10px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.tadd input{flex:1;border:0;background:var(--inputBg);padding:7px 11px;font:inherit;outline:none;color:var(--ink)}
+.tadd input::placeholder{color:var(--faint)}
+.tadd button{border:0;border-left:1px solid var(--line);background:var(--inputBtn);color:var(--ink);font:inherit;
+  font-weight:650;padding:0 14px;cursor:pointer;transition:background .2s}
+.tadd button:hover{background:var(--teal);color:#FFF}
+/* 群选择 chips */
+.chips{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+.chip{font-size:11px;padding:2px 10px;border:1px solid var(--line);border-radius:8px;color:var(--sub);
+  cursor:pointer;background:var(--card);transition:all .2s}
+.chip.on{border-color:var(--teal);color:var(--teal);background:var(--cardHi)}
+/* 审批 hero */
+.appr{background:var(--smoke);color:var(--smokeFg);border-color:rgba(40,45,54,.8)}
+body.dark .appr{border-color:var(--line)}
+.appr:hover{background:var(--smokeHi)}
+.appr .lab{color:var(--smokeSub)}.appr .lab b{color:var(--smokeFg)}
 .appr .row{display:flex;align-items:center;gap:14px}
-.appr .big{font-family:"Segoe UI Variable Display",sans-serif;font-size:52px;font-weight:650;color:#E8A0AC;line-height:1;
-  text-shadow:0 0 24px rgba(232,160,172,.45)}
+.appr .big{font-family:"Segoe UI Variable Display",sans-serif;font-size:52px;font-weight:650;color:var(--pink);
+  line-height:1;text-shadow:0 0 24px rgba(232,160,172,.45)}
 .appr ul{list-style:none;flex:1}
 .appr li{display:flex;gap:7px;align-items:center;font-size:12px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.09)}
-.appr li .u{width:6px;height:6px;background:#E8A0AC;border-radius:50%;animation:pulse 1.8s infinite}
+.appr li .u{width:6px;height:6px;background:var(--pink);border-radius:50%;animation:pulse 1.8s infinite;flex:none}
+.appr li.calm .u{background:var(--teal);animation:none}
 @keyframes pulse{50%{opacity:.3}}
-.appr li .amt{margin-left:auto;font-family:"Cascadia Mono",Consolas,monospace;font-size:10px;color:#98A3B2}
-.appr .go{margin-top:10px;display:block;text-align:center;border:1px solid rgba(255,255,255,.22);border-radius:10px;
-  font-size:10px;letter-spacing:3px;padding:7px 0;cursor:pointer;background:rgba(255,255,255,.05)}
-.appr .go:hover{background:rgba(199,78,92,.85)}
-/* 对话（电报账目风） */
-.ms{display:flex;gap:8px;padding:5px 0;font-size:13px;border-bottom:1px solid rgba(227,232,240,.7)}
-.ms .w{flex:none;width:44px;font-family:"Cascadia Mono",Consolas,monospace;font-size:9px;color:#A0AAB7;padding-top:3px}
+.appr li .amt{margin-left:auto;font-family:"Cascadia Mono",monospace;font-size:10px;color:var(--smokeSub)}
+.appr .go{margin-top:10px;display:block;text-align:center;border:1px solid rgba(255,255,255,.25);border-radius:10px;
+  font-size:10px;letter-spacing:3px;padding:7px 0;cursor:pointer;background:rgba(255,255,255,.05);transition:all .2s}
+.appr .go:hover{background:var(--rose);border-color:var(--rose)}
+/* 消息 */
+.ms{display:flex;gap:8px;padding:5px 0;font-size:13px;border-bottom:1px solid var(--lineSoft)}
+.ms .w{flex:none;width:44px;font-family:"Cascadia Mono",monospace;font-size:9px;color:var(--faint);padding-top:3px}
 .ms.me .bb{background:rgba(46,52,64,.88);color:#EFF3F8;padding:3px 10px;border-radius:10px 10px 10px 3px}
-.ms.o .bb{background:rgba(238,242,247,.85);padding:3px 10px;border-radius:10px 10px 3px 10px;border:1px solid rgba(222,227,233,.7)}
-.cs{margin-top:auto;display:flex;border:1px solid rgba(216,222,230,.95);border-radius:10px;overflow:hidden}
-.cs input{flex:1;border:0;background:rgba(255,255,255,.6);padding:7px 11px;font:inherit;outline:none;font-size:13px}
-.cs button{border:0;border-left:1px solid rgba(216,222,230,.95);background:rgba(240,244,249,.6);font:inherit;font-weight:700;padding:0 13px;cursor:pointer}
-.cs button:hover{background:#C74E5C;color:#FFF}
-/* 天平横梁装饰：双翼顶上一根线 */
-.beam{width:1280px;height:1px;margin:0 auto 12px;background:linear-gradient(90deg,transparent,rgba(160,170,183,.7) 15%,rgba(160,170,183,.7) 85%,transparent);position:relative}
-.beam::before,.beam::after{content:"";position:absolute;top:-3px;width:7px;height:7px;border-radius:50%;background:#4FA3A5}
-.beam::before{left:calc(25% - 3px)}.beam::after{right:calc(25% - 3px)}
-.hint{font-family:"Cascadia Mono",Consolas,monospace;font-size:9px;letter-spacing:2px;color:#A0AAB7;margin-top:16px}
+body.dark .ms.me .bb{background:rgba(120,130,148,.5);color:#F5F8FC}
+.ms.o .bb{background:var(--inputBg);padding:3px 10px;border-radius:10px 10px 3px 10px;border:1px solid var(--lineSoft)}
+/* 会话行 */
+.conv{display:flex;gap:10px;align-items:center;padding:8px 6px;border-bottom:1px solid var(--lineSoft);cursor:pointer;border-radius:8px}
+.conv:hover{background:var(--cardHi)}
+.conv.sel{background:var(--cardHi)}
+.conv .av{width:32px;height:32px;border-radius:50%;background:var(--teal);color:#FFF;font-weight:700;font-size:13px;
+  display:flex;align-items:center;justify-content:center;flex:none}
+.conv .info{flex:1;min-width:0}
+.conv .nm{font-size:13px;font-weight:600}
+.conv .sm{font-size:10px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}
+.conv .bdg{font-size:9px;color:#FFF;background:var(--rose);border-radius:8px;padding:1px 7px;min-width:18px;text-align:center}
+/* 中央柱内容 */
+.fulcrum .n{font-family:"Segoe UI Variable Display",sans-serif;font-size:56px;font-weight:650;line-height:1;letter-spacing:-2px}
+.fulcrum .n em{font-style:normal;font-size:18px;color:var(--sub)}
+.fulcrum .s{font-size:11px;color:var(--sub);text-align:center;line-height:1.7}
+.fulcrum .clock{font-family:"Cascadia Mono",monospace;font-size:10px;color:var(--ink);letter-spacing:2px}
+.fulcrum .ftag{font-family:"Cascadia Mono",monospace;font-size:9px;letter-spacing:2px;color:var(--faint)}
+.bigav{width:74px;height:74px;border-radius:50%;background:var(--teal);color:#FFF;font-size:30px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;box-shadow:0 10px 26px rgba(79,163,165,.35)}
+/* 设置行 */
+.setrow{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--lineSoft);font-size:13px}
+.setrow .k{width:76px;color:var(--sub)}
+.setrow input{flex:1;background:var(--inputBg);border:1px solid var(--lineSoft);border-radius:8px;
+  padding:5px 10px;font:inherit;font-size:12px;outline:none;color:var(--ink)}
+.tgl{width:36px;height:20px;border-radius:10px;background:var(--mute);position:relative;cursor:pointer;transition:background .25s;flex:none}
+.tgl::after{content:"";position:absolute;left:2px;top:2px;width:16px;height:16px;border-radius:50%;background:#FFF;transition:left .25s cubic-bezier(.32,.72,0,1)}
+.tgl.on{background:var(--teal)}
+.tgl.on::after{left:18px}
+.pbtn{border:1px solid var(--line);border-radius:9px;background:var(--inputBtn);color:var(--ink);
+  font:650 11px/1 "Segoe UI Variable Text";padding:8px 14px;cursor:pointer;letter-spacing:1px;transition:all .2s}
+.pbtn:hover{border-color:var(--teal);color:var(--teal)}
+.pbtn.pri{background:var(--teal);border-color:var(--teal);color:#FFF}
+.pbtn.pri:hover{filter:brightness(1.1)}
+/* 审批对账浮层 */
+.mask{position:fixed;inset:0;background:rgba(20,24,32,.45);backdrop-filter:blur(8px);z-index:50;
+  display:none;align-items:center;justify-content:center}
+.mask.on{display:flex}
+.sheet{width:680px;max-height:78vh;overflow:auto;background:var(--glassHi);border:1px solid var(--line);
+  border-radius:18px;backdrop-filter:blur(30px) saturate(1.3);padding:20px 24px;
+  box-shadow:0 30px 80px rgba(20,24,32,.4)}
+.sheet h2{font-family:"Segoe UI Variable Display",sans-serif;font-size:19px;font-weight:650;letter-spacing:2px}
+.sheet h2 em{font-style:normal;color:var(--teal)}
+.aplist{margin-top:10px}
+.apitem{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;background:var(--card)}
+.apitem .top{display:flex;align-items:center;gap:10px}
+.apitem .tt{font-size:14px;font-weight:650;flex:1}
+.apitem .money{font-family:"Cascadia Mono",monospace;font-size:13px;color:var(--rose)}
+/* 顺序链 */
+.chain{display:flex;align-items:center;gap:6px;margin:10px 0 6px}
+.cnode{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:64px}
+.cnode .b{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;border:2px solid var(--mute);color:var(--sub);background:var(--inputBg)}
+.cnode.pass .b{border-color:var(--teal);background:var(--teal);color:#FFF}
+.cnode.cur .b{border-color:var(--pink);color:var(--pink);box-shadow:0 0 12px rgba(232,160,172,.6)}
+.cnode small{font-family:"Cascadia Mono",monospace;font-size:8px;color:var(--faint);letter-spacing:1px}
+.clink{flex:1;height:2px;background:var(--lineSoft);border-radius:1px}
+.clink.pass{background:var(--teal)}
+.hint{font-family:"Cascadia Mono",Consolas,monospace;font-size:9px;letter-spacing:2px;color:var(--faint);margin-top:14px}
+.toast{position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(20px);opacity:0;
+  background:var(--smoke);color:var(--smokeFg);border-radius:12px;padding:9px 20px;font-size:12px;letter-spacing:2px;
+  z-index:99;transition:all .35s cubic-bezier(.32,.72,0,1);pointer-events:none}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
 <i class="orb o1"></i><i class="orb o2"></i>
 <div class="desktop">
-  <div class="capsule" onclick="replay()"><span>IF—OA / 天平账</span><span><i></i> <span class="b">3</span></span></div>
+  <div class="capsule" onclick="replay()"><span>IF—OA / 天平账</span><span><i></i> <span class="b" id="capBadge">3</span></span></div>
   <div class="pivot"></div>
   <div class="beam"></div>
-  <div class="wings" id="wings">
-    <div class="wingL">
-      <div class="card" style="animation-delay:.10s;flex:1;display:flex;flex-direction:column">
-        <div class="lab"><b>待办 · 借方</b><span>DR</span></div>
-        <div class="ledger ok"><span class="no">011</span><i class="sq"></i><span class="tx">季度预算表交财务</span><span class="eq">✓=结</span></div>
-        <div class="ledger"><span class="no">012</span><i class="sq"></i><span class="tx">回复设计部配色提案</span><span class="amt">今日</span></div>
-        <div class="ledger"><span class="no">013</span><i class="sq"></i><span class="tx">约王工评审接口契约</span><span class="amt">今日</span></div>
-        <div class="ledger"><span class="no">014</span><i class="sq"></i><span class="tx">给新同学开仓库权限</span><span class="amt">今日</span></div>
-        <div class="tadd" style="margin-top:auto"><input placeholder="记一笔…"><button>入账</button></div>
+
+  <nav class="chapters">
+    <button class="ch on" data-p="0" onclick="goPage(0)">第一章 · 台账<small>WORKBENCH</small></button>
+    <button class="ch" data-p="1" onclick="goPage(1)">第二章 · 凭证<small>FILES</small></button>
+    <button class="ch" data-p="2" onclick="goPage(2)">第三章 · 往来<small>CHAT</small></button>
+    <button class="ch" data-p="3" onclick="goPage(3)">第四章 · 名册<small>ME</small></button>
+  </nav>
+
+  <!-- ============ 第一章 · 台账（工作台） ============ -->
+  <section class="page on" id="p0">
+    <div class="wings">
+      <div class="wingL">
+        <div class="card" style="flex:1;display:flex;flex-direction:column">
+          <div class="lab"><b>待办 · 借方</b><span>DR</span></div>
+          <div id="todoList" style="flex:1"></div>
+          <div class="tadd"><input id="todoIn" placeholder="记一笔…（回车入账）"><button onclick="addTodo()">入账</button></div>
+        </div>
+        <div class="card">
+          <div class="lab"><b>文件 · 凭证速览</b><span>VO</span></div>
+          <div class="ledger"><span class="no">F01</span><span class="tx">Q2 预算表.xlsx</span><span class="amt">2 分钟前</span></div>
+          <div class="ledger"><span class="no">F02</span><span class="tx">设计参考图.zip</span><span class="amt">昨天</span></div>
+        </div>
       </div>
-      <div class="card" style="animation-delay:.2s">
-        <div class="lab"><b>文件 · 凭证</b><span>VO</span></div>
-        <div class="ledger"><span class="no">F01</span><span class="tx new">Q2 预算表.xlsx</span><span class="amt">2 分钟前</span></div>
-        <div class="ledger"><span class="no">F02</span><span class="tx">设计参考图.zip</span><span class="amt">昨天</span></div>
+      <div class="fulcrum">
+        <div class="lab" style="align-self:stretch"><b>天平 · 今日</b><span>=</span></div>
+        <div class="n">14<em>°C</em></div>
+        <div class="s">北京 · 多云转晴<br>13—21° · 东北风 2 级</div>
+        <div class="clock" id="clock">--:--</div>
+        <div class="ftag">FULCRUM</div>
+      </div>
+      <div class="wingR">
+        <div class="card appr">
+          <div class="lab"><b>审批 · 贷方</b><span>CR</span></div>
+          <div class="row"><div class="big" id="apprBig">3</div><ul id="apprMini"></ul></div>
+          <span class="go" onclick="openSheet()">对账 ›</span>
+        </div>
+        <div class="card" style="flex:1;display:flex;flex-direction:column">
+          <div class="lab"><b>对话 · 往来</b><span>MSG</span></div>
+          <div class="ms o"><span class="w">李雷 09:32</span><span class="bb">新版岛的颜色定了吗？</span></div>
+          <div class="ms me"><span class="w">我</span><span class="bb">定了，下午发你</span></div>
+          <div class="ms o"><span class="w">韩梅梅</span><span class="bb">报销单已批，记得看</span></div>
+        </div>
       </div>
     </div>
-    <div class="fulcrum">
-      <div class="lab" style="align-self:stretch"><b>天平 · 今日</b><span>=</span></div>
-      <div class="n">14<em>°C</em></div>
-      <div class="s">北京 · 多云转晴<br>13—21° · 东北风 2 级</div>
-      <div class="clock" id="clock">--:--</div>
-    </div>
-    <div class="wingR">
-      <div class="card appr" style="animation-delay:.15s">
-        <div class="lab"><b>审批 · 贷方</b><span>CR</span></div>
-        <div class="row"><div class="big">3</div>
-          <ul>
-            <li><i class="u"></i>设备采购<span class="amt">¥8,400 急</span></li>
-            <li><i class="u"></i>调休 · 小刘<span class="amt">昨</span></li>
-            <li><i class="u" style="background:#4FA3A5;animation:none"></i>用印 · 已会签<span class="amt">昨</span></li>
-          </ul></div>
-        <span class="go">对账 ›</span>
+  </section>
+
+  <!-- ============ 第二章 · 凭证（文件） ============ -->
+  <section class="page" id="p1">
+    <div class="wings">
+      <div class="wingL">
+        <div class="card" style="flex:1;display:flex;flex-direction:column">
+          <div class="lab"><b>公共账本</b><span>SHARED</span></div>
+          <div class="chips">
+            <span class="chip on" onclick="pickGroup(this,'全员公共区')">全员公共区</span>
+            <span class="chip" onclick="pickGroup(this,'产品组')">产品组</span>
+            <span class="chip" onclick="pickGroup(this,'设计组')">设计组</span>
+          </div>
+          <div id="pubList"></div>
+        </div>
       </div>
-      <div class="card" style="animation-delay:.25s;flex:1;display:flex;flex-direction:column">
-        <div class="lab"><b>对话 · 往来</b><span>MSG</span></div>
-        <div class="ms o"><span class="w">李雷 09:32</span><span class="bb">新版岛的颜色定了吗？</span></div>
-        <div class="ms me"><span class="w">我</span><span class="bb">定了，下午发你</span></div>
-        <div class="ms o"><span class="w">韩梅梅</span><span class="bb">报销单已批，记得看</span></div>
-        <div class="cs"><input placeholder="回一笔…"><button>发</button></div>
+      <div class="fulcrum">
+        <div class="lab" style="align-self:stretch"><b>凭证 · 详情</b><span>=</span></div>
+        <div class="n" id="fType" style="font-size:34px;letter-spacing:0">XLS</div>
+        <div class="s" id="fName" style="font-weight:650;color:var(--ink)">Q2 预算表.xlsx</div>
+        <div class="s" id="fMeta">1.2 MB · 今天 09:39 · 我</div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="pbtn pri" onclick="toast('已开始下载')">下载</button>
+          <button class="pbtn" id="favBtn" onclick="toggleFav()">☆ 收藏</button>
+        </div>
+        <div class="ftag">VOUCHER</div>
+      </div>
+      <div class="wingR">
+        <div class="card" style="flex:1;display:flex;flex-direction:column">
+          <div class="lab"><b>我的账本</b><span>PRIVATE</span></div>
+          <div id="myList"></div>
+          <div class="tadd"><input id="upIn" placeholder="上传新凭证（文件名）…"><button onclick="upload()">存入</button></div>
+        </div>
       </div>
     </div>
-  </div>
-  <div class="hint">BALANCE LEDGER · 左借右贷 · 点胶囊重播张翼</div>
+  </section>
+
+  <!-- ============ 第三章 · 往来（对话） ============ -->
+  <section class="page" id="p2">
+    <div class="wings">
+      <div class="wingL">
+        <div class="card" style="flex:1">
+          <div class="lab"><b>往来户头</b><span>ACCOUNTS</span></div>
+          <div id="convList"></div>
+        </div>
+      </div>
+      <div class="fulcrum">
+        <div class="lab" style="align-self:stretch"><b>户头 · 名片</b><span>=</span></div>
+        <div class="bigav" id="peerAv">李</div>
+        <div class="s" id="peerName" style="font-weight:650;color:var(--ink);font-size:15px">李雷</div>
+        <div class="s" id="peerDept">产品部 · 产品经理</div>
+        <div class="s" style="color:var(--teal)">● 在线</div>
+        <div class="ftag">COUNTERPART</div>
+      </div>
+      <div class="wingR">
+        <div class="card" style="flex:1;display:flex;flex-direction:column">
+          <div class="lab"><b>往来流水</b><span id="flowName">李雷</span></div>
+          <div id="msgList" style="flex:1;min-height:220px"></div>
+          <div class="tadd"><input id="msgIn" placeholder="回一笔…（回车拍发）"><button onclick="sendMsg()">拍发</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 第四章 · 名册（个人中心） ============ -->
+  <section class="page" id="p3">
+    <div class="wings">
+      <div class="wingL">
+        <div class="card" style="flex:1">
+          <div class="lab"><b>我的档案</b><span>ROSTER</span></div>
+          <div class="setrow"><span class="k">姓名</span><input value="王小明"></div>
+          <div class="setrow"><span class="k">部门</span><input value="产品部" disabled></div>
+          <div class="setrow"><span class="k">职位</span><input value="产品经理"></div>
+          <div class="setrow"><span class="k">工号</span><input value="P-1024" disabled></div>
+          <button class="pbtn" style="margin-top:12px" onclick="toast('档案已保存')">保存档案</button>
+        </div>
+        <div class="card">
+          <div class="lab"><b>安全 · 密钥</b><span>KEY</span></div>
+          <div class="setrow"><span class="k">原密码</span><input type="password" value="••••••••"></div>
+          <div class="setrow"><span class="k">新密码</span><input type="password" placeholder="7 天有效期 · JWT"></div>
+          <button class="pbtn" style="margin-top:10px" onclick="toast('密码已更新')">更换密钥</button>
+        </div>
+      </div>
+      <div class="fulcrum">
+        <div class="lab" style="align-self:stretch"><b>名册 · 本人</b><span>=</span></div>
+        <div class="bigav">王</div>
+        <div class="s" style="font-weight:650;color:var(--ink);font-size:15px">王小明</div>
+        <div class="s">产品部 · 产品经理</div>
+        <div class="clock" style="margin-top:6px">工号 P-1024</div>
+        <div class="ftag">SELF</div>
+      </div>
+      <div class="wingR">
+        <div class="card" style="flex:1">
+          <div class="lab"><b>设置 · 章程</b><span>SETTINGS</span></div>
+          <div class="setrow"><span class="k">服务端</span><input value="http://192.168.1.20:8000"></div>
+          <div class="setrow"><span class="k">天气城市</span><input value="北京"></div>
+          <div class="setrow"><span class="k">开机自启</span><span style="flex:1"></span><span class="tgl on" onclick="this.classList.toggle('on')"></span></div>
+          <div class="setrow"><span class="k">点击穿透</span><span style="flex:1"></span><span class="tgl on" onclick="this.classList.toggle('on')"></span></div>
+          <div class="setrow"><span class="k">暗夜账本</span><span style="flex:1;font-size:10px;color:var(--faint)">黑白主题</span><span class="tgl" id="themeTgl" onclick="toggleTheme()"></span></div>
+          <button class="pbtn pri" style="margin-top:12px" onclick="toast('章程已生效')">保存章程</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="hint">BALANCE LEDGER · 左借右贷 · 四账页一浮层 · 点胶囊重播张翼</div>
 </div>
+
+<!-- ============ 审批对账浮层 ============ -->
+<div class="mask" id="mask" onclick="if(event.target===this)closeSheet()">
+  <div class="sheet">
+    <h2>对账单 <em>/ 审批流</em></h2>
+    <div class="aplist" id="apList"></div>
+    <div class="hint">顺序链：1→2→… 逐级 · 指定人 / 部门领导</div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
 <script>
-function replay(){const w=document.getElementById("wings");w.style.animation="none";w.offsetHeight;w.style.animation="";}
-const wd=["日","一","二","三","四","五","六"],t=new Date();
-document.getElementById("clock").textContent=`${String(t.getHours()).padStart(2,"0")}:${String(t.getMinutes()).padStart(2,"0")} 星期${wd[t.getDay()]}`;
+/* ===== 状态 ===== */
+let todos=[
+  {id:"011",tx:"季度预算表交财务",ok:true},
+  {id:"012",tx:"回复设计部配色提案",ok:false},
+  {id:"013",tx:"约王工评审接口契约",ok:false},
+  {id:"014",tx:"给新同学开仓库权限",ok:false}];
+let approvals=[
+  {t:"设备采购 · 报销",m:"¥8,400",urgent:true,chain:[{n:"主管",s:1},{n:"财务",s:2},{n:"总监",s:0}]},
+  {t:"调休申请 · 小刘",m:"1 天",urgent:false,chain:[{n:"主管",s:1},{n:"人事",s:2}]},
+  {t:"合同用印 · 已会签",m:"—",urgent:false,done:true,chain:[{n:"法务",s:1},{n:"总监",s:1}]}];
+let curGroup="全员公共区";
+let pubFiles={
+  "全员公共区":[{n:"接口契约 v3.pdf",m:"2.4 MB · 今天"},{n:"团建照片.zip",m:"86 MB · 昨天"}],
+  "产品组":[{n:"需求池.xlsx",m:"0.8 MB · 今天"},{n:"PRD 模板.docx",m:"0.1 MB · 周一"}],
+  "设计组":[{n:"岛体参考图.png",m:"4.2 MB · 昨天"},{n:"图标库.svg",m:"0.9 MB · 周二"}]};
+let myFiles=[
+  {n:"Q2 预算表.xlsx",m:"1.2 MB · 2 分钟前",fav:true},
+  {n:"设计参考图.zip",m:"58 MB · 昨天",fav:false},
+  {n:"个人笔记.md",m:"12 KB · 周三",fav:false}];
+let convs=[
+  {n:"李雷",dept:"产品部",sm:"新版岛的颜色定了吗？",un:0},
+  {n:"韩梅梅",dept:"财务部",sm:"报销单已批，记得看",un:2},
+  {n:"产品组",dept:"群 · 8 人",sm:"王工：接口评审改到下午",un:5}];
+let msgs={
+  "李雷":[{w:"李雷 09:32",tx:"新版岛的颜色定了吗？",me:false},{w:"我 09:33",tx:"定了，下午发你",me:true}],
+  "韩梅梅":[{w:"韩梅梅 09:40",tx:"报销单已批，记得看",me:false}],
+  "产品组":[{w:"王工 09:12",tx:"接口评审改到下午三点",me:false},{w:"我 09:13",tx:"收到，会议室不变？",me:true},{w:"王工 09:13",tx:"不变，老地方",me:false}]};
+let curConv="李雷", todoSeq=15, fav=false;
+
+/* ===== 工具 ===== */
+const $=s=>document.querySelector(s);
+const el=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e;};
+function toast(t){const el=$("#toast");el.textContent=t;el.classList.add("on");setTimeout(()=>el.classList.remove("on"),1600);}
+function replay(){const p=$(".page.on");p.style.animation="none";p.offsetHeight;p.style.animation="";}
+function goPage(i){document.querySelectorAll(".page").forEach((p,x)=>p.classList.toggle("on",x===i));
+  document.querySelectorAll(".ch").forEach((c,x)=>c.classList.toggle("on",x===i));}
+
+/* ===== 台账：待办 ===== */
+function renderTodos(){
+  const box=$("#todoList");box.replaceChildren(...todos.map((t,i)=>{
+    const r=el("div","ledger"+(t.ok?" ok":""));
+    r.append(el("span","no",t.id),el("i","sq"),el("span","tx",t.tx),el("span","eq",t.ok?"= 结":"待"));
+    r.addEventListener("click",()=>{todos[i].ok=!todos[i].ok;renderTodos();});
+    return r;}));}
+function addTodo(){const v=$("#todoIn").value.trim();if(!v)return;
+  todos.push({id:"0"+todoSeq++,tx:v,ok:false});$("#todoIn").value="";renderTodos();toast("已入账 · 借方");}
+
+/* ===== 台账：审批摘要 + 计数 ===== */
+function pendingCount(){return approvals.filter(a=>!a.done).length;}
+function renderAppr(){
+  const n=pendingCount();
+  $("#apprBig").textContent=n;$("#capBadge").textContent=n;$("#capBadge").style.display=n?"":"none";
+  const ul=$("#apprMini");
+  ul.replaceChildren(...approvals.filter(a=>!a.done).slice(0,3).map(a=>{
+    const li=el("li",a.urgent?"":"calm");
+    li.append(el("i","u"),el("span",null,a.t),el("span","amt",a.m+(a.urgent?" 急":"")));return li;}));
+  if(!ul.children.length){const li=el("li","calm");
+    li.append(el("i","u"),el("span",null,"账目两清"),el("span","amt","= 0"));ul.append(li);}}
+
+/* ===== 凭证页 ===== */
+let pubRows=[];
+function renderPub(){
+  const box=$("#pubList");pubRows=pubFiles[curGroup].map((f,i)=>{
+    const r=el("div","ledger");
+    r.append(el("span","no","P"+(i+1)),el("span","tx",f.n),el("span","amt",f.m));
+    r.addEventListener("click",()=>pickPub(i));return r;});
+  box.replaceChildren(...pubRows);}
+function pickGroup(node,g){document.querySelectorAll(".chip").forEach(c=>c.classList.remove("on"));
+  node.classList.add("on");curGroup=g;renderPub();fav=false;$("#favBtn").textContent="☆ 收藏";}
+function pickPub(i){const f=pubFiles[curGroup][i];
+  pubRows.forEach(r=>r.classList.remove("sel"));pubRows[i].classList.add("sel");
+  $("#fType").textContent=f.n.split(".").pop().toUpperCase().slice(0,4);
+  $("#fName").textContent=f.n;$("#fMeta").textContent=f.m+" · "+curGroup;}
+function renderMy(){
+  const box=$("#myList");box.replaceChildren(...myFiles.map((f,i)=>{
+    const r=el("div","ledger");
+    const star=el("span","star"+(f.fav?" on":""),f.fav?"★":"☆");
+    star.addEventListener("click",()=>{myFiles[i].fav=!myFiles[i].fav;renderMy();toast(myFiles[i].fav?"已收藏 · 凭证柜":"已取消收藏");});
+    const get=el("span","act","取");get.addEventListener("click",()=>toast("已开始下载"));
+    const del=el("span","act del","销");del.addEventListener("click",()=>{const n=myFiles[i].n;myFiles.splice(i,1);renderMy();toast("已销账 · "+n);});
+    r.append(el("span","no","M"+(i+1)),el("span","tx",f.n),star,get,del);return r;}));}
+function upload(){const v=$("#upIn").value.trim();if(!v)return;
+  myFiles.unshift({n:v,m:"刚刚 · 我",fav:false});$("#upIn").value="";renderMy();toast("新凭证已存入");}
+function toggleFav(){fav=!fav;$("#favBtn").textContent=fav?"★ 已收藏":"☆ 收藏";}
+
+/* ===== 往来页 ===== */
+function renderConvs(){const box=$("#convList");box.replaceChildren(...convs.map((c,i)=>{
+  const r=el("div","conv"+(c.n===curConv?" sel":""));
+  const av=el("span","av",c.n[0]);
+  const info=el("span","info");
+  info.append(el("div","nm",c.n),el("div","sm",c.sm));
+  r.append(av,info);
+  if(c.un){const b=el("span","bdg",String(c.un));r.append(b);}
+  r.addEventListener("click",()=>openConv(i));return r;}));}
+function openConv(i){curConv=convs[i].n;convs[i].un=0;
+  $("#peerAv").textContent=curConv[0];$("#peerName").textContent=curConv;
+  $("#peerDept").textContent=convs[i].dept.includes("群")?convs[i].dept:convs[i].dept+" · 同事";
+  $("#flowName").textContent=curConv;renderConvs();renderMsgs();}
+function renderMsgs(){const box=$("#msgList");box.replaceChildren(...msgs[curConv].map(m=>{
+  const r=el("div","ms "+(m.me?"me":"o"));
+  r.append(el("span","w",m.w),el("span","bb",m.tx));return r;}));}
+function sendMsg(){const v=$("#msgIn").value.trim();if(!v)return;
+  msgs[curConv].push({w:"我 "+now(),tx:v,me:true});
+  const c=convs.find(c=>c.n===curConv);c.sm=v;
+  $("#msgIn").value="";renderMsgs();renderConvs();}
+
+/* ===== 名册页 ===== */
+function toggleTheme(){document.body.classList.toggle("dark");
+  $("#themeTgl").classList.toggle("on",document.body.classList.contains("dark"));
+  toast(document.body.classList.contains("dark")?"暗夜账本 · 已生效":"日间账本 · 已生效");}
+
+/* ===== 审批浮层 ===== */
+function openSheet(){renderSheet();$("#mask").classList.add("on");}
+function closeSheet(){$("#mask").classList.remove("on");}
+function renderSheet(){
+  const box=$("#apList");
+  box.replaceChildren(...approvals.map((a,i)=>{
+    const item=el("div","apitem");
+    const top=el("div","top");
+    const tt=el("span","tt",a.t);
+    if(a.urgent){const u=el("span");u.style.cssText="color:var(--rose);font-size:10px";u.textContent="急";tt.append(" ",u);}
+    top.append(tt,el("span","money",a.m));
+    const chain=el("div","chain");
+    a.chain.forEach((n,j)=>{
+      const st=(a.done||n.s===1)?"pass":n.s===2?"cur":"";
+      const cn=el("div","cnode "+st);
+      cn.append(el("span","b",a.done?"=":n.s===1?"✓":String(j+1)),el("small",null,n.n));
+      chain.append(cn);
+      if(j<a.chain.length-1)chain.append(el("span","clink"+((a.done||n.s===1)?" pass":"")));});
+    item.append(top,chain);
+    if(a.done){const d=el("div");d.style.cssText="font-size:11px;color:var(--teal);margin-top:4px";
+      d.textContent="已结 · 全链通过";item.append(d);}
+    else{const bar=el("div");bar.style.cssText="display:flex;gap:8px;margin-top:8px";
+      const ok=el("button","pbtn pri","批准 · 过账");ok.addEventListener("click",()=>actAp(i,1));
+      const no=el("button","pbtn","驳回 · 退票");no.style.cssText="color:var(--rose);border-color:var(--rose)";
+      no.addEventListener("click",()=>actAp(i,0));
+      bar.append(ok,no);item.append(bar);}
+    return item;}));
+  if(!box.children.length){const d=el("div");
+    d.style.cssText="text-align:center;color:var(--sub);padding:30px 0";d.textContent="账目两清 · 无待审";box.append(d);}}
+
+function actAp(i,pass){
+  if(pass){const a=approvals[i];const cur=a.chain.findIndex(n=>n.s===2);
+    if(cur>=0)a.chain[cur].s=1;
+    if(a.chain.every(n=>n.s===1))a.done=true;
+    toast("已过账 · 链前移");}
+  else{approvals.splice(i,1);toast("已退票 · 通知发起人");}
+  renderSheet();renderAppr();}
+
+/* ===== 时钟 ===== */
+function now(){const t=new Date();return String(t.getHours()).padStart(2,"0")+":"+String(t.getMinutes()).padStart(2,"0");}
+function tick(){const wd=["日","一","二","三","四","五","六"],t=new Date();
+  $("#clock").textContent=`${now()} · 星期${wd[t.getDay()]}`;}
+tick();setInterval(tick,30000);
+
+/* ===== 初始化 ===== */
+renderTodos();renderAppr();renderPub();renderMy();renderConvs();renderMsgs();
+if(pubRows[0])pickPub(0);
+document.getElementById("todoIn").addEventListener("keydown",e=>{if(e.key==="Enter")addTodo()});
+document.getElementById("msgIn").addEventListener("keydown",e=>{if(e.key==="Enter")sendMsg()});
+document.getElementById("upIn").addEventListener("keydown",e=>{if(e.key==="Enter")upload()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeSheet()});
 </script>
 </body>
 </html>
