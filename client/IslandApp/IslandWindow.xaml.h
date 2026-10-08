@@ -62,6 +62,19 @@ namespace winrt::IslandApp::implementation
         winrt::fire_and_forget AddTodo();                          // 快速添加（协程，XAML 事件只做 void 转发）
         void AddTodoRow(int id, winrt::hstring const& content);   // 待办行（无绑定，直建控件）
 
+        // —— 天平账移植：审批中心 + 个人中心设置 ——
+    public: // XAML 事件由生成代码连接，处理器须公开
+        void OnOpenApprovalsClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
+        void OnCloseApprovalsClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
+        winrt::fire_and_forget LoadApprovalsHero();              // 工作台 hero 计数
+        winrt::fire_and_forget LoadApprovalSheet();              // 审批中心浮层列表
+        winrt::fire_and_forget ActApproval(int id, bool pass);   // 通过 / 驳回
+        void ApprovalCard(int id, winrt::hstring const& title, winrt::hstring const& applicant,
+                          winrt::hstring const& node, winrt::hstring const& when);
+        void OnSaveSettingsClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
+        void OnChangePasswordClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
+        void OnDarkTglToggled(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
+
         // ---- 文件页（左右分栏，P0 平铺列表） ----
         winrt::fire_and_forget LoadFilesPage();   // 登录后一次：收藏集 + 群栏 + 两栏
         winrt::fire_and_forget LoadMyFiles();

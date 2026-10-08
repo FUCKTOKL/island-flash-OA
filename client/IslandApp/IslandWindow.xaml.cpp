@@ -317,6 +317,7 @@ namespace winrt::IslandApp::implementation
         BYTE b = m_dark ? '1' : '0';
         ifoa::RegWriteBinary(L"dark", &b, 1); // 下次启动生效
         ThemeIcon().Glyph(m_dark ? L"\uE708" : L"\uE706"); // 月/日
+        try { DarkTgl().IsOn(m_dark); } catch (...) {} // 设置页深色开关同步（元素常在，防御性）
         SelectTab(m_curTab); // 选中页签药丸颜色随主题刷新
     }
 
@@ -355,15 +356,29 @@ namespace winrt::IslandApp::implementation
                 auto obj = winrt::Windows::Data::Json::JsonObject::Parse(me);
                 MeWelcome().Text(L"欢迎，" + obj.GetNamedString(L"name") + L"（" + obj.GetNamedString(L"role") + L"）");
                 m_myUid = static_cast<int>(obj.GetNamedNumber(L"id")); // 气泡左右对齐用
+                // 天平账：名片/资料卡回填
+                ProfName().Text(obj.GetNamedString(L"name"));
+                ProfRole().Text(obj.GetNamedString(L"role"));
+                ProfUid().Text(L"工号 " + obj.GetNamedString(L"name")); // 契约 me 无工号，先以账号名代展示
+                ProfUid2().Text(L"UID " + std::to_wstring(m_myUid));
+                AvChar().Text(winrt::hstring(std::wstring(1, std::wstring(obj.GetNamedString(L"name").c_str())[0])));
             }
             catch (...) { /* me 拉取失败不阻断主流程 */ }
         }
         m_ws.Start(m_api.Base(), token, m_dq,
                    [this](winrt::hstring type) { OnWsEvent(type); });
 
-        // 工作台小组件：待办 + 天气
+        // 工作台小组件：待办 + 天气 + 审批计数
         LoadTodos();
         LoadWeather();
+        LoadApprovalsHero();
+
+        // 个人中心：服务端预填 + 自启偏好回读
+        ServInput().Text(LoginServer().Text());
+        {
+            std::vector<unsigned char> ab{1};
+            if (ifoa::RegReadBinary(L"autostart", ab)) TglAuto().IsOn(!ab.empty() && ab[0] != '0');
+        }
 
         // 文件页：收藏集 + 群栏 + 两栏列表
         LoadFilesPage();
@@ -1099,5 +1114,178 @@ namespace winrt::IslandApp::implementation
         {
             Collapse(); // 点击窗外 → 收起；胶囊态时 Collapse 自带守卫，无副作用
         }
+    }
+
+    /* ===== 天平账移植：审批中心 + 个人中心设置 ===== */
+
+    // 工作台 hero 计数：待我审批条数（GET /api/approvals?box=todo）
+    winrt::fire_and_forget IslandWindow::LoadApprovalsHero()
+    {
+        auto lifetime = get_strong();
+        auto body = co_await m_api.GetAsync(L"/api/approvals?box=todo");
+        int n = 0;
+        try
+        {
+            for (auto const& v : winrt::Windows::Data::Json::JsonArray::Parse(body)) n++;
+        }
+        catch (...) {}
+        ApprCount().Text(winrt::hstring(std::to_wstring(n)));
+        ApprSub().Text(n ? L"待我审批 · 点击下方按钮进入审批中心" : L"暂无待审批 — 一切就位");
+    }
+
+    // 审批中心浮层：逐条渲染 通过/驳回 卡片
+    winrt::fire_and_forget IslandWindow::LoadApprovalSheet()
+    {
+        auto lifetime = get_strong();
+        ApList().Children().Clear();
+        auto body = co_await m_api.GetAsync(L"/api/approvals?box=todo");
+        ApList().Children().Clear();
+        try
+        {
+            for (auto const& v : winrt::Windows::Data::Json::JsonArray::Parse(body))
+            {
+                auto o = v.GetObject();
+                // created_at ISO → 截前 16 位，T 换空格（2025-01-02 03:04）
+                std::wstring w(o.GetNamedString(L"created_at").c_str());
+                if (w.size() > 16) w = w.substr(0, 16);
+                for (auto& c : w) if (c == L'T') c = L' ';
+                ApprovalCard(static_cast<int>(o.GetNamedNumber(L"id")),
+                             o.GetNamedString(L"title"),
+                             o.GetNamedString(L"applicant_name"),
+                             o.GetNamedString(L"current_node"),
+                             winrt::hstring(w));
+            }
+        }
+        catch (...)
+        {
+            auto tb = Controls::TextBlock();
+            tb.Text(L"（加载失败 · 检查服务端）");
+            tb.Opacity(0.5);
+            ApList().Children().Append(tb);
+        }
+        if (ApList().Children().Size() == 0)
+        {
+            auto tb = Controls::TextBlock();
+            tb.Text(L"暂无待审批 — 一切就位");
+            tb.Opacity(0.5);
+            ApList().Children().Append(tb);
+        }
+    }
+
+    // 单张审批卡：标题+时间 / 申请人+当前节点 / 通过+驳回
+    void IslandWindow::ApprovalCard(int id, winrt::hstring const& title, winrt::hstring const& applicant,
+                                    winrt::hstring const& node, winrt::hstring const& when)
+    {
+        auto card = Controls::Border();
+        card.CornerRadius(CornerRadius(10));
+        card.Background(Media::SolidColorBrush(Windows::UI::Color{0x4D, 0xFF, 0xFF, 0xFF}));
+        card.BorderBrush(Media::SolidColorBrush(Windows::UI::Color{0x30, 0x88, 0x92, 0x9E}));
+        card.BorderThickness(Thickness{1});
+        card.Padding(Thickness{12, 10, 12, 10});
+
+        auto sp = Controls::StackPanel();
+        sp.Spacing(4);
+
+        auto r1 = Controls::StackPanel();
+        r1.Orientation(Controls::Orientation::Horizontal);
+        r1.Spacing(8);
+        auto tt = Controls::TextBlock();
+        tt.Text(title);
+        tt.FontSize(14);
+        tt.FontWeight(winrt::Microsoft::UI::Text::FontWeights::SemiBold());
+        auto tm = Controls::TextBlock();
+        tm.Text(when);
+        tm.FontSize(10);
+        tm.Opacity(0.5);
+        tm.FontFamily(Media::FontFamily(L"Cascadia Mono"));
+        tm.VerticalAlignment(VerticalAlignment::Center);
+        r1.Children().Append(tt);
+        r1.Children().Append(tm);
+
+        auto meta = Controls::TextBlock();
+        meta.Text(applicant + L" · 当前节点：" + node);
+        meta.FontSize(11);
+        meta.Opacity(0.65);
+
+        auto r3 = Controls::StackPanel();
+        r3.Orientation(Controls::Orientation::Horizontal);
+        r3.Spacing(8);
+        r3.Margin(Thickness{0, 4, 0, 0});
+
+        auto pass = Controls::Button();
+        pass.Content(box_value(L"通过"));
+        pass.Tag(box_value(id));
+        pass.Click([this](IInspectable const& s, RoutedEventArgs const&) {
+            ActApproval(winrt::unbox_value<int>(s.as<Controls::Button>().Tag()), true);
+        });
+        pass.Background(Media::SolidColorBrush(Windows::UI::Color{0xFF, 0x4F, 0xA3, 0xA5}));
+        pass.Foreground(Media::SolidColorBrush(Windows::UI::Color{0xFF, 0xFF, 0xFF, 0xFF}));
+        pass.CornerRadius(CornerRadius(8));
+        pass.Padding(Thickness{14, 4, 14, 4});
+
+        auto rej = Controls::Button();
+        rej.Content(box_value(L"驳回"));
+        rej.Tag(box_value(id));
+        rej.Click([this](IInspectable const& s, RoutedEventArgs const&) {
+            ActApproval(winrt::unbox_value<int>(s.as<Controls::Button>().Tag()), false);
+        });
+        rej.Background(Media::SolidColorBrush(Windows::UI::Color{0x00, 0x00, 0x00, 0x00}));
+        rej.BorderBrush(Media::SolidColorBrush(Windows::UI::Color{0xFF, 0xC7, 0x4E, 0x5C}));
+        rej.BorderThickness(Thickness{1});
+        rej.Foreground(Media::SolidColorBrush(Windows::UI::Color{0xFF, 0xC7, 0x4E, 0x5C}));
+        rej.CornerRadius(CornerRadius(8));
+        rej.Padding(Thickness{14, 4, 14, 4});
+
+        r3.Children().Append(pass);
+        r3.Children().Append(rej);
+        sp.Children().Append(r1);
+        sp.Children().Append(meta);
+        sp.Children().Append(r3);
+        card.Child(sp);
+        ApList().Children().Append(card);
+    }
+
+    // 通过 → 链前移；驳回 → 终结。随后刷新浮层与 hero 计数
+    winrt::fire_and_forget IslandWindow::ActApproval(int id, bool pass)
+    {
+        auto lifetime = get_strong();
+        std::wstring p = L"/api/approvals/" + std::to_wstring(id) + L"/action";
+        std::wstring b = pass ? L"{\"action\":\"approve\",\"comment\":\"\"}"
+                              : L"{\"action\":\"reject\",\"comment\":\"\"}";
+        co_await m_api.PostAsync(winrt::hstring(p), winrt::hstring(b));
+        LoadApprovalSheet();
+        LoadApprovalsHero();
+    }
+
+    void IslandWindow::OnOpenApprovalsClick(IInspectable const&, RoutedEventArgs const&)
+    {
+        ApprovalMask().Visibility(Visibility::Visible);
+        LoadApprovalSheet();
+    }
+
+    void IslandWindow::OnCloseApprovalsClick(IInspectable const&, RoutedEventArgs const&)
+    {
+        ApprovalMask().Visibility(Visibility::Collapsed);
+    }
+
+    void IslandWindow::OnSaveSettingsClick(IInspectable const&, RoutedEventArgs const&)
+    {
+        auto url = ServInput().Text();
+        if (!url.empty()) ifoa::ApiClient::SaveServer(url); // 重新登录后生效
+        BYTE b = TglAuto().IsOn() ? '1' : '0';
+        ifoa::RegWriteBinary(L"autostart", &b, 1);          // 偏好已存；真自启 P2（Run 键）
+        SetNote().Text(L"已保存 · 服务端切换重新登录后生效");
+    }
+
+    void IslandWindow::OnChangePasswordClick(IInspectable const&, RoutedEventArgs const&)
+    {
+        // ponytail: 契约暂无密码端点，接入后补 POST
+        PwNote().Text(L"密码修改接口契约待补充 · 敬请期待");
+    }
+
+    void IslandWindow::OnDarkTglToggled(IInspectable const&, RoutedEventArgs const&)
+    {
+        if (DarkTgl().IsOn() == m_dark) return; // ApplyTheme 回同不开环
+        OnThemeToggleClick(nullptr, nullptr);        // 复用：翻转 m_dark + ApplyTheme（内部回同开关）
     }
 }
