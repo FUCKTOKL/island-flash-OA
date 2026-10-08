@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <cmath>
 #pragma comment(lib, "dwmapi.lib")
+#pragma comment(lib, "gdi32.lib") // 区域裁剪（CreateRoundRectRgn/SetWindowRgn 等）
 
 using namespace winrt;
 using namespace Microsoft::UI::Xaml;
