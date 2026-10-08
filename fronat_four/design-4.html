@@ -2,87 +2,121 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<title>IF-OA · 肆</title>
+<title>IF-OA · 肆 · 单元矩阵</title>
 <style>
-/* 审讯极简 INTERROGATION：无卡片无圆角无阴影，只有横线/方块/问号/巨数字。灵感：极短符号串的追问感 */
+/* 单元矩阵 CELL SYSTEM：严格等分网格、每格=编号模块、双色+单强调、瑞士秩序。
+   灵感：纯字母数字串的无符号纯净与模块化秩序 */
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#FAFAF7;color:#111;min-height:100vh;display:flex;flex-direction:column;align-items:center;
-  font:14px/1.6 "Segoe UI Variable Text","Segoe UI",sans-serif}
-.desktop{width:100%;padding:30px 0 64px;position:relative}
-.desktop::after{content:"?";position:fixed;right:4vw;bottom:2vh;font-size:44vh;font-weight:800;
-  color:rgba(229,18,46,.06);pointer-events:none;line-height:1}
-.capsule{width:216px;height:36px;border:1px solid #111;border-bottom:none;margin:0 auto;
-  display:flex;align-items:center;justify-content:space-between;padding:0 14px;font-size:11px}
-.capsule i{font-style:normal;color:#E5122E;font-weight:800}
-.island{width:1280px;height:480px;border:1px solid #111;position:relative;
-  display:grid;grid-template-columns:1fr 1fr 1.15fr;grid-template-rows:56px 1fr 52px}
-/* 顶：不是页签，是回答 */
-.q{grid-column:1/4;border-bottom:1px solid #111;display:flex;align-items:center;justify-content:space-between;padding:0 22px}
-.q h1{font-size:21px;font-weight:800;letter-spacing:1px}
-.q h1 em{font-style:normal;color:#E5122E}
-.q .nav{font-size:12px;letter-spacing:2px;color:#999}
-.q .nav b{color:#111;border-bottom:3px solid #E5122E;padding-bottom:2px}
-.q .nav span{margin-left:16px}
-/* 待办：纯清单，方块复选 */
-.sec{padding:22px;border-right:1px solid #111}
-.sec h2{font-size:11px;letter-spacing:4px;color:#999;margin-bottom:14px}
-.li{display:flex;gap:12px;align-items:baseline;padding:9px 0;border-bottom:1px solid #E5E2D9;font-size:15px}
-.li b{font-weight:400;color:#E5122E;font-size:12px;min-width:20px}
-.box{width:13px;height:13px;border:2px solid #111;display:inline-block;transform:translateY(1px)}
-.li.ok .box{background:#111}
-.li.ok span{text-decoration:line-through;color:#AAA}
-.add{display:flex;margin-top:14px;border:2px solid #111}
-.add input{flex:1;border:0;background:none;padding:10px 12px;font:inherit;color:#111}
-.add input:focus{outline:none;background:#FFF}
-.add button{border:0;border-left:2px solid #111;background:#111;color:#FFF;font:inherit;font-weight:700;padding:0 18px;cursor:pointer}
-/* 天气：只有一个答案 */
-.wx{padding:22px;border-right:1px solid #111;display:flex;flex-direction:column;justify-content:center}
-.wx .n{font-size:150px;font-weight:800;line-height:.95;letter-spacing:-6px}
-.wx .n em{font-style:normal;font-size:28px;color:#E5122E}
-.wx .sub{font-size:13px;color:#666;margin-top:8px;letter-spacing:1px}
-/* 对话：笔录体 */
-.ct{padding:22px 22px 0;display:flex;flex-direction:column}
-.line{padding:7px 0;border-bottom:1px solid #E5E2D9;font-size:14px}
-.line .w{color:#999;font-size:10px;letter-spacing:2px;margin-right:10px}
-.line.me{text-align:right;color:#111}
-.line.me .w{color:#E5122E}
-.line.o{color:#333}
-.send{margin-top:auto;display:flex;border:2px solid #111;margin-bottom:0}
-.send input{flex:1;border:0;background:none;padding:10px 12px;font:inherit;color:#111}
-.send input:focus{outline:none}
-.send button{border:0;border-left:2px solid #111;background:#E5122E;color:#FFF;font:inherit;font-weight:800;padding:0 20px;cursor:pointer}
-.f{grid-column:1/4;border-top:1px solid #111;display:flex;align-items:center;justify-content:space-between;
-  padding:0 22px;font-size:10px;letter-spacing:3px;color:#999}
+body{background:#F4F4F2;color:#101010;min-height:100vh;display:flex;flex-direction:column;align-items:center;
+  font:14px/1.55 "Segoe UI Variable Text","Segoe UI",sans-serif}
+.desktop{width:100%;padding:26px 0 64px}
+.capsule{width:216px;height:36px;margin:0 auto 0;background:#101010;color:#F4F4F2;
+  display:flex;align-items:center;justify-content:space-between;padding:0 18px;
+  font-size:10px;letter-spacing:3px}
+.capsule i{font-style:normal;color:#35A078;font-weight:800}
+.island{width:1280px;height:480px;background:#F4F4F2;border:1px solid #101010;border-top:0;
+  display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:52px 150px 150px 52px}
+.cell{border-right:1px solid #101010;border-bottom:1px solid #101010;padding:14px 16px;position:relative;background:#F4F4F2}
+.cell:nth-child(4n){border-right:0}
+.cell:hover{background:#EBEDE9}
+/* 顶带 */
+.h1c{grid-column:1/5;display:flex;align-items:center;justify-content:space-between;
+  padding:0 18px;font-size:12px;letter-spacing:3px;border-bottom:1px solid #101010;border-right:0}
+.h1c b{font-size:17px;letter-spacing:1px}
+.h1c b em{font-style:normal;color:#35A078}
+/* 单元通用 */
+.lab{font-size:9px;letter-spacing:3px;color:#6B6B6B;display:flex;justify-content:space-between}
+.lab b{color:#101010}
+/* 待办单元（宽2） */
+.todo{grid-column:span 2}
+.item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #D8D8D4;font-size:15px}
+.item .sq{width:12px;height:12px;border:2px solid #101010;flex:none}
+.item.ok .sq{background:#35A078;border-color:#35A078}
+.item.ok span{color:#9A9A94;text-decoration:line-through}
+.item .idx{margin-left:auto;font-size:9px;color:#6B6B6B;letter-spacing:1px}
+.tadd{display:flex;margin-top:10px;border:2px solid #101010}
+.tadd input{flex:1;border:0;background:#FFF;padding:8px 12px;font:inherit;outline:none}
+.tadd button{border:0;border-left:2px solid #101010;background:#101010;color:#FFF;font:inherit;font-weight:700;padding:0 16px;cursor:pointer}
+/* 天气单元：巨数字 */
+.wxnum{font-size:64px;font-weight:800;line-height:1;letter-spacing:-3px;margin-top:14px}
+.wxnum em{font-style:normal;font-size:18px;color:#35A078}
+.wxsub{font-size:11px;color:#6B6B6B;margin-top:6px;letter-spacing:1px}
+/* 审批单元：强调底 */
+.appr{background:#101010;color:#F4F4F2}
+.appr:hover{background:#1C1C1A}
+.appr .lab{color:#8A8A86}.appr .lab b{color:#F4F4F2}
+.appr .n{font-size:44px;font-weight:800;color:#35A078;margin-top:12px;line-height:1}
+.appr .go{position:absolute;right:14px;bottom:14px;border:1px solid #F4F4F2;color:#F4F4F2;
+  font-size:10px;letter-spacing:2px;padding:5px 12px}
+/* 音乐单元 */
+.music .eq{display:flex;gap:4px;align-items:flex-end;height:34px;margin-top:16px}
+.music .eq i{width:7px;background:#101010}
+.music .eq i:nth-child(2){background:#35A078}
+.music .t{font-size:13px;font-weight:700;margin-top:10px}
+.music .a{font-size:10px;color:#6B6B6B}
+/* 对话单元（宽2，跨2行） */
+.chat{grid-row:span 2;display:flex;flex-direction:column}
+.ms{display:flex;gap:10px;padding:7px 0;font-size:13px}
+.ms .w{flex:none;width:44px;font-size:9px;letter-spacing:1px;color:#6B6B6B;padding-top:3px}
+.ms.me{text-align:left}
+.ms.me .b{background:#101010;color:#FFF;padding:5px 10px}
+.ms.o .b{background:#E7E9E4;padding:5px 10px}
+.csend{margin-top:auto;display:flex;border:2px solid #101010;margin-bottom:2px}
+.csend input{flex:1;border:0;background:#FFF;padding:8px 12px;font:inherit;outline:none}
+.csend button{border:0;border-left:2px solid #101010;background:#35A078;color:#FFF;font:inherit;font-weight:800;padding:0 14px;cursor:pointer}
+/* 文件单元 */
+.files .row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #D8D8D4;font-size:13px}
+.files .row i{font-style:normal;color:#6B6B6B;font-size:10px}
+.files .row .new{color:#35A078;font-weight:700}
+/* 底带 */
+.f1{grid-column:1/5;display:flex;align-items:center;justify-content:space-between;
+  padding:0 18px;font-size:9px;letter-spacing:3px;color:#6B6B6B;border:0}
+.f1 b{color:#101010}
 </style>
 </head>
 <body>
 <div class="desktop">
-  <div class="capsule"><span>IF—OA</span><i>3</i></div>
+  <div class="capsule"><span>IF—OA</span><i>A2</i></div>
   <div class="island">
-    <div class="q">
-      <h1>今天，<em>做</em>什么？</h1>
-      <nav class="nav"><b>现在</b><span>文件？</span><span>谁在找你？</span><span>你是谁？</span></nav>
+    <div class="cell h1c"><b>单元矩阵 <em>/ 今日</em></b><span>星期四 · 09:41 · 北京</span></div>
+    <div class="cell todo">
+      <div class="lab"><b>任务</b><span>B1</span></div>
+      <div class="item ok"><i class="sq"></i><span>季度预算表交财务</span><span class="idx">T-011</span></div>
+      <div class="item"><i class="sq"></i><span>回复设计部配色提案</span><span class="idx">T-012</span></div>
+      <div class="item"><i class="sq"></i><span>约王工评审接口契约</span><span class="idx">T-013</span></div>
+      <div class="tadd"><input placeholder="新单元…"><button>置入</button></div>
     </div>
-    <div class="sec">
-      <h2>还要做 THESE REMAIN</h2>
-      <div class="li ok"><span class="box"></span><span>季度预算表交财务</span><b>01</b></div>
-      <div class="li"><span class="box"></span><span>回复设计部配色提案</span><b>02</b></div>
-      <div class="li"><span class="box"></span><span>约王工评审接口契约</span><b>03</b></div>
-      <div class="li"><span class="box"></span><span>给新同学开仓库权限</span><b>04</b></div>
-      <div class="add"><input placeholder="现在做什么？"><button>做</button></div>
+    <div class="cell">
+      <div class="lab"><b>天气</b><span>C1</span></div>
+      <div class="wxnum">14<em>°</em></div>
+      <div class="wxsub">北京 · 多云转晴 · 13—21°</div>
     </div>
-    <div class="wx">
-      <div class="n">14<em>°</em></div>
-      <div class="sub">北京 · 多云转晴 · 13—21° · 东北风 2 级</div>
+    <div class="cell appr">
+      <div class="lab"><b>审批</b><span>C2</span></div>
+      <div class="n">3</div>
+      <div class="lab" style="margin-top:6px"><span>待我处理</span><span>1 加急</span></div>
+      <span class="go">进入 &gt;</span>
     </div>
-    <div class="ct">
-      <h2 style="font-size:11px;letter-spacing:4px;color:#999;margin-bottom:6px">他们说 THEY SAY</h2>
-      <div class="line o"><span class="w">李雷 09:32</span>新版岛的颜色定了吗？</div>
-      <div class="line me"><span class="w">我</span>定了，下午发你</div>
-      <div class="line o"><span class="w">韩梅梅 09:40</span>报销单已批，记得看</div>
-      <div class="send"><input placeholder="回答…"><button>答</button></div>
+    <div class="cell chat">
+      <div class="lab"><b>对话</b><span>D1</span></div>
+      <div class="ms o"><span class="w">李雷 09:32</span><span class="b">新版岛的颜色定了吗？</span></div>
+      <div class="ms me"><span class="w">我</span><span class="b">定了，下午发你</span></div>
+      <div class="ms o"><span class="w">韩梅梅</span><span class="b">报销单已批，记得看</span></div>
+      <div class="csend"><input placeholder="输入…"><button>发</button></div>
     </div>
-    <div class="f"><span>NO CARDS / NO RADIUS / NO SHADOW</span><span>№4 — INTERROGATION</span></div>
+    <div class="cell files">
+      <div class="lab"><b>文件</b><span>B3</span></div>
+      <div class="row"><span>接口契约 v3.pdf</span><i>公共区 · 新</i></div>
+      <div class="row"><span class="new">Q2 预算表.xlsx</span><i>我的 · 2 分钟前</i></div>
+      <div class="row"><span>设计参考图.zip</span><i>我的</i></div>
+    </div>
+    <div class="cell music">
+      <div class="lab"><b>媒体</b><span>B4</span></div>
+      <div class="eq"><i style="height:16px"></i><i style="height:30px"></i><i style="height:10px"></i><i style="height:24px"></i><i style="height:14px"></i><i style="height:28px"></i></div>
+      <div class="t">City Pop 流行电台</div>
+      <div class="a">SMTC · 系统媒体</div>
+    </div>
+    <div class="cell f1"><span><b>CELL SYSTEM</b> · 4×4 · 秩序即设计</span><span>GRID №4 · A—D / 1—4</span></div>
   </div>
 </div>
 </body>
