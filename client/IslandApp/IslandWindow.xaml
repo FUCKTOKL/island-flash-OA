@@ -209,13 +209,48 @@
                     </Border>
                 </Grid>
 
-                <!-- P3 对话页（左列表 260px / 右会话） -->
-                <StackPanel x:Name="Page2" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
-                    <FontIcon Glyph="&#xE8BD;" FontSize="36" Opacity="0.6"/>
-                    <TextBlock Text="对话" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center"/>
-                    <TextBlock Text="单聊+群聊 · WS 实时推送" Opacity="0.55" HorizontalAlignment="Center"/>
-                    <TextBlock Text="（服务接入后填充）" Opacity="0.35" FontSize="12" HorizontalAlignment="Center"/>
-                </StackPanel>
+                <!-- P3 对话页：左会话列表 / 右消息气泡，WS 实时 -->
+                <Grid x:Name="Page2" Visibility="Collapsed">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="280"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- 会话列表岛 -->
+                    <Border Grid.Column="0" CornerRadius="14" Background="{ThemeResource CardBg}"
+                            BorderBrush="{ThemeResource CardBorder}" BorderThickness="1" Padding="8" Margin="0,0,8,0">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <StackPanel x:Name="ConvList" Spacing="4"/>
+                        </ScrollViewer>
+                    </Border>
+
+                    <!-- 会话岛 -->
+                    <Border Grid.Column="1" CornerRadius="14" Background="{ThemeResource CardBg}"
+                            BorderBrush="{ThemeResource CardBorder}" BorderThickness="1" Padding="14">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock x:Name="ChatTitle" Text="选择左侧会话" FontSize="14"
+                                       FontWeight="SemiBold" Margin="2,0,0,6"/>
+                            <ScrollViewer x:Name="ChatScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                                <StackPanel x:Name="MsgList" Spacing="6"/>
+                            </ScrollViewer>
+                            <Grid Grid.Row="2" Margin="0,8,0,0" ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="MsgInput" PlaceholderText="发消息…（Enter 发送）" FontSize="12"
+                                         KeyDown="OnMsgKey"/>
+                                <Button Grid.Column="1" Content="发送" Click="OnSendClick"
+                                        CornerRadius="6" Padding="14,6" FontSize="12"/>
+                            </Grid>
+                        </Grid>
+                    </Border>
+                </Grid>
 
                 <!-- P4 个人中心（左资料 / 右设置） -->
                 <StackPanel x:Name="Page3" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">

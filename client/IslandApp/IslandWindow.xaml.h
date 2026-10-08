@@ -34,6 +34,10 @@ namespace winrt::IslandApp::implementation
                            Microsoft::UI::Xaml::RoutedEventArgs const&);
         void OnGroupChanged(Windows::Foundation::IInspectable const&,
                             Microsoft::UI::Xaml::Controls::SelectionChangedEventArgs const&);
+        void OnSendClick(Windows::Foundation::IInspectable const&,
+                        Microsoft::UI::Xaml::RoutedEventArgs const&);
+        void OnMsgKey(Windows::Foundation::IInspectable const&,
+                      Microsoft::UI::Xaml::Input::KeyRoutedEventArgs const& e);
 
     private:
         // ---- 壳生命周期 ----
@@ -69,6 +73,14 @@ namespace winrt::IslandApp::implementation
         void AddFileRow(Microsoft::UI::Xaml::Controls::StackPanel const& panel,
                         Windows::Data::Json::JsonObject const& o, bool mine); // 文件行
 
+        // ---- 对话页（左列表右会话，WS 实时） ----
+        winrt::fire_and_forget LoadConvs();                     // 会话列表
+        void OpenConv(int id, winrt::hstring const& name, bool isGroup); // 选中 → 拉消息
+        winrt::fire_and_forget LoadMsgs();                      // 当前会话消息（正序）
+        winrt::fire_and_forget SendMsg();                       // 发文本（Enter/按钮）
+        void AddConvRow(Windows::Data::Json::JsonObject const& o);
+        void AddMsgRow(Windows::Data::Json::JsonObject const& m);
+
         void OnRootLoaded(Windows::Foundation::IInspectable const&,
                           Microsoft::UI::Xaml::RoutedEventArgs const&); // Root 加载完再初始化壳
         void OnAnimTick(Windows::Foundation::IInspectable const&, Windows::Foundation::IInspectable const&);
@@ -97,6 +109,9 @@ namespace winrt::IslandApp::implementation
         int m_selectedGroup{ 0 };  // 文件页群栏：0=全员公共区，>0=群 id
         bool m_dark{ false };      // 主题：false=白岛，true=黑岛（注册表 dark 字节记忆）
         int m_curTab{ 0 };         // 当前页签（切主题时刷新选中药丸用）
+        int m_curConv{ -1 };       // 对话页当前会话 id（-1 未选）
+        bool m_convIsGroup{ false };
+        int m_myUid{ 0 };          // 我的 uid（气泡左右对齐用）
         winrt::Microsoft::UI::Dispatching::DispatcherQueue m_dq{ nullptr }; // UI 调度器（WS 事件编回）
     };
 }

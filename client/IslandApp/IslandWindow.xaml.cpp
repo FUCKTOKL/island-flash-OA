@@ -365,6 +365,7 @@ namespace winrt::IslandApp::implementation
             {
                 auto obj = winrt::Windows::Data::Json::JsonObject::Parse(me);
                 MeWelcome().Text(L"欢迎，" + obj.GetNamedString(L"name") + L"（" + obj.GetNamedString(L"role") + L"）");
+                m_myUid = static_cast<int>(obj.GetNamedNumber(L"id")); // 气泡左右对齐用
             }
             catch (...) { /* me 拉取失败不阻断主流程 */ }
         }
@@ -377,6 +378,9 @@ namespace winrt::IslandApp::implementation
 
         // 文件页：收藏集 + 群栏 + 两栏列表
         LoadFilesPage();
+
+        // 对话页：会话列表
+        LoadConvs();
     }
 
     void IslandWindow::OnWsEvent(winrt::hstring const& type)
@@ -386,6 +390,12 @@ namespace winrt::IslandApp::implementation
         {
             ++m_unread;
             UpdateBadge();
+        }
+        // 新消息：会话列表实时刷新；若正打开该会话则同步追加（简单粗暴全量拉，百条内无感）
+        if (type == L"message.new")
+        {
+            LoadConvs();
+            if (m_curConv >= 0) LoadMsgs();
         }
     }
 
@@ -772,6 +782,211 @@ namespace winrt::IslandApp::implementation
         auto buf = co_await m_api.DownloadAsync(
             winrt::hstring(L"/files/" + std::to_wstring(id) + L"/download"));
         if (buf) co_await winrt::Windows::Storage::FileIO::WriteBufferAsync(f, buf);
+    }
+
+    // ============ 对话页（左列表右会话，WS 实时；docs/02 §四） ============
+
+    // 消息摘要（列表预览用；非文本类型出占位符）
+    static winrt::hstring MsgSummary(winrt::Windows::Data::Json::JsonObject const& m)
+    {
+        auto t = m.GetNamedString(L"type");
+        if (t == L"image") return L"[图片]";
+        if (t == L"file") return L"[文件]";
+        return m.GetNamedString(L"content");
+    }
+
+    void IslandWindow::AddConvRow(winrt::Windows::Data::Json::JsonObject const& o)
+    {
+        using namespace winrt::Windows::Data::Json;
+        int id = static_cast<int>(o.GetNamedNumber(L"id"));
+        bool isGroup = o.GetNamedString(L"type") == L"group";
+        winrt::hstring name = isGroup ? o.GetNamedString(L"name", L"群聊") : L"";
+        if (!isGroup)
+        {
+            auto pv = o.Lookup(L"peer");
+            name = pv.ValueType() == JsonValueType::Object
+                ? pv.GetObject().GetNamedString(L"display_name", L"?")
+                : L"（对方已退出）";
+        }
+
+        auto btn = Controls::Button();
+        btn.Background(Media::SolidColorBrush(Windows::UI::Color{ 0, 0, 0, 0 }));
+        btn.BorderThickness(Thickness(0));
+        btn.CornerRadius(CornerRadius(8));
+        btn.Padding(Thickness(8, 6, 8, 6));
+        btn.HorizontalAlignment(Controls::HorizontalAlignment::Stretch);
+
+        auto sp = Controls::StackPanel();
+        sp.Orientation(Controls::Orientation::Horizontal);
+        sp.Spacing(8);
+
+        // 头像圈：名字首字
+        auto av = Controls::Border();
+        av.Width(32); av.Height(32); av.CornerRadius(CornerRadius(16));
+        av.Background(Media::SolidColorBrush(Windows::UI::Color{ 0xFF, 0x35, 0xA0, 0x78 }));
+        auto avt = Controls::TextBlock();
+        avt.Text(name.empty() ? L"?" : winrt::hstring(name.c_str(), name.c_str() + 1));
+        avt.FontSize(13); avt.FontWeight(winrt::Microsoft::UI::Text::FontWeights::Bold());
+        avt.Foreground(Media::SolidColorBrush(Windows::UI::Color{ 0xFF, 0xFF, 0xFF, 0xFF }));
+        avt.HorizontalAlignment(Controls::HorizontalAlignment::Center);
+        avt.VerticalAlignment(Controls::VerticalAlignment::Center);
+        av.Child(avt);
+
+        auto mid = Controls::StackPanel();
+        mid.Spacing(1); mid.VerticalAlignment(Controls::VerticalAlignment::Center);
+        auto t1 = Controls::TextBlock(); t1.Text(name); t1.FontSize(13);
+        t1.TextTrimming(TextTrimming::CharacterEllipsis); t1.MaxWidth(120);
+        auto t2 = Controls::TextBlock();
+        if (o.HasKey(L"last_message") && !o.GetNamedValue(L"last_message").IsNull())
+            t2.Text(MsgSummary(o.GetNamedObject(L"last_message")));
+        else
+            t2.Text(L"（新会话）");
+        t2.FontSize(11); t2.Opacity(0.55); t2.TextTrimming(TextTrimming::CharacterEllipsis); t2.MaxWidth(150);
+        mid.Children().Append(t1); mid.Children().Append(t2);
+
+        sp.Children().Append(av); sp.Children().Append(mid);
+
+        // 未读小红点数
+        int unread = static_cast<int>(o.GetNamedNumber(L"unread", 0));
+        if (unread > 0)
+        {
+            auto ub = Controls::Border();
+            ub.CornerRadius(CornerRadius(9)); ub.MinWidth(18); ub.Height(18);
+            ub.Background(Media::SolidColorBrush(Windows::UI::Color{ 0xFF, 0xE5, 0x48, 0x4D }));
+            ub.VerticalAlignment(Controls::VerticalAlignment::Center);
+            auto ut = Controls::TextBlock(); ut.Text(std::to_wstring(unread));
+            ut.FontSize(10); ut.Foreground(Media::SolidColorBrush(Windows::UI::Color{ 0xFF, 0xFF, 0xFF, 0xFF }));
+            ut.HorizontalAlignment(Controls::HorizontalAlignment::Center);
+            ut.VerticalAlignment(Controls::VerticalAlignment::Center);
+            ub.Child(ut);
+            sp.Children().Append(ub);
+        }
+
+        btn.Content(sp);
+        btn.Click([this, id, name, isGroup](IInspectable const&, RoutedEventArgs const&)
+            { OpenConv(id, name, isGroup); });
+        ConvList().Children().Append(btn);
+    }
+
+    winrt::fire_and_forget IslandWindow::LoadConvs()
+    {
+        auto lifetime = get_strong();
+        auto body = co_await m_api.GetAsync(L"/conversations");
+        ConvList().Children().Clear();
+        if (body.empty())
+        {
+            auto tb = Controls::TextBlock(); tb.Text(L"（加载失败）"); tb.FontSize(12); tb.Opacity(0.5);
+            ConvList().Children().Append(tb); co_return;
+        }
+        int n = 0;
+        try
+        {
+            for (auto const& v : winrt::Windows::Data::Json::JsonArray::Parse(body))
+            {
+                AddConvRow(v.GetObject());
+                if (++n >= 30) break; // ponytail: 只列前 30，搜索/分页 P2
+            }
+        }
+        catch (...) {}
+        if (n == 0)
+        {
+            auto tb = Controls::TextBlock(); tb.Text(L"（无会话 · 等别人发消息给你）"); tb.FontSize(12); tb.Opacity(0.5);
+            ConvList().Children().Append(tb);
+        }
+    }
+
+    void IslandWindow::OpenConv(int id, winrt::hstring const& name, bool isGroup)
+    {
+        m_curConv = id;
+        m_convIsGroup = isGroup;
+        ChatTitle().Text(name);
+        LoadMsgs();
+    }
+
+    void IslandWindow::AddMsgRow(winrt::Windows::Data::Json::JsonObject const& m)
+    {
+        bool mine = static_cast<int>(m.GetNamedNumber(L"sender_id")) == m_myUid;
+
+        auto col = Controls::StackPanel(); // 垂直容器：可选名字行 + 气泡行
+        col.Spacing(2);
+        col.MaxWidth(440);
+        col.HorizontalAlignment(mine ? Controls::HorizontalAlignment::Right
+                                      : Controls::HorizontalAlignment::Left);
+
+        if (!mine && m_convIsGroup && m.HasKey(L"sender_name"))
+        {
+            auto nm = Controls::TextBlock();
+            nm.Text(m.GetNamedString(L"sender_name"));
+            nm.FontSize(11); nm.Opacity(0.55);
+            col.Children().Append(nm);
+        }
+
+        auto bubble = Controls::Border();
+        bubble.CornerRadius(CornerRadius(10));
+        bubble.Padding(Thickness(10, 5, 10, 5));
+        if (mine)
+        {
+            auto accent = Resources().Lookup(box_value(L"IslandAccentBrush")).as<Media::SolidColorBrush>();
+            bubble.Background(accent);
+        }
+        else
+        {
+            bubble.Background(Resources().Lookup(box_value(L"ChipBg")).as<Media::SolidColorBrush>());
+        }
+        auto txt = Controls::TextBlock();
+        txt.Text(MsgSummary(m));
+        txt.FontSize(13);
+        txt.TextWrapping(Controls::TextWrapping::Wrap);
+        txt.MaxWidth(400);
+        if (mine) txt.Foreground(Media::SolidColorBrush(Windows::UI::Color{ 0xFF, 0xFF, 0xFF, 0xFF }));
+        bubble.Child(txt);
+        col.Children().Append(bubble);
+        MsgList().Children().Append(col);
+    }
+
+    winrt::fire_and_forget IslandWindow::LoadMsgs()
+    {
+        auto lifetime = get_strong();
+        if (m_curConv < 0) co_return;
+        auto body = co_await m_api.GetAsync(
+            winrt::hstring(L"/conversations/" + std::to_wstring(m_curConv) + L"/messages"));
+        MsgList().Children().Clear();
+        if (body.empty())
+        {
+            auto tb = Controls::TextBlock(); tb.Text(L"（加载失败）"); tb.FontSize(12); tb.Opacity(0.5);
+            MsgList().Children().Append(tb); co_return;
+        }
+        try
+        {
+            for (auto const& v : winrt::Windows::Data::Json::JsonArray::Parse(body))
+                AddMsgRow(v.GetObject());
+        }
+        catch (...) {}
+        ChatScroll().UpdateLayout();
+        ChatScroll().ChangeView(nullptr, box_value(ChatScroll().ScrollableHeight()), nullptr); // 滚到底
+    }
+
+    void IslandWindow::OnSendClick(IInspectable const&, RoutedEventArgs const&) { SendMsg(); }
+
+    void IslandWindow::OnMsgKey(IInspectable const&, Input::KeyRoutedEventArgs const& e)
+    {
+        if (e.Key() == Windows::System::VirtualKey::Enter) SendMsg();
+    }
+
+    winrt::fire_and_forget IslandWindow::SendMsg()
+    {
+        auto lifetime = get_strong();
+        auto text = MsgInput().Text();
+        if (text.empty() || m_curConv < 0) co_return;
+        winrt::Windows::Data::Json::JsonObject o;
+        o.Insert(L"type", winrt::Windows::Data::Json::JsonValue::CreateStringValue(L"text"));
+        o.Insert(L"content", winrt::Windows::Data::Json::JsonValue::CreateStringValue(text));
+        co_await m_api.PostAsync(
+            winrt::hstring(L"/conversations/" + std::to_wstring(m_curConv) + L"/messages"),
+            o.Stringify());
+        MsgInput().Text(L"");
+        LoadMsgs();
+        LoadConvs();
     }
 
     winrt::fire_and_forget IslandWindow::DoLogin()
