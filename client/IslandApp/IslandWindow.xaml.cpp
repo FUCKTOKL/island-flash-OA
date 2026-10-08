@@ -1023,20 +1023,17 @@ namespace winrt::IslandApp::implementation
         Page2().Visibility(idx == 2 ? Visibility::Visible : Visibility::Collapsed);
         Page3().Visibility(idx == 3 ? Visibility::Visible : Visibility::Collapsed);
 
-        Tab0().FontWeight(idx == 0 ? winrt::Microsoft::UI::Text::FontWeights::Bold() : winrt::Microsoft::UI::Text::FontWeights::Normal());
-        Tab1().FontWeight(idx == 1 ? winrt::Microsoft::UI::Text::FontWeights::Bold() : winrt::Microsoft::UI::Text::FontWeights::Normal());
-        Tab2().FontWeight(idx == 2 ? winrt::Microsoft::UI::Text::FontWeights::Bold() : winrt::Microsoft::UI::Text::FontWeights::Normal());
-        Tab3().FontWeight(idx == 3 ? winrt::Microsoft::UI::Text::FontWeights::Bold() : winrt::Microsoft::UI::Text::FontWeights::Normal());
-
-        // 选中页签药丸：随主题取色（黑岛青绿深/白岛薄荷薄染）
-        auto sel = Media::SolidColorBrush(m_dark
-            ? Windows::UI::Color{ 0xFF, 0x2A, 0x3D, 0x35 }
-            : Windows::UI::Color{ 0xFF, 0xD9, 0xEE, 0xE3 });
-        auto unsel = Media::SolidColorBrush(Windows::UI::Color{ 0, 0, 0, 0 });
-        Tab0().Background(idx == 0 ? sel : unsel);
-        Tab1().Background(idx == 1 ? sel : unsel);
-        Tab2().Background(idx == 2 ? sel : unsel);
-        Tab3().Background(idx == 3 ? sel : unsel);
+        // 左轨图标页签：选中 = 鼠尾草药丸+白图标；未选 = 透明+主题默认色（不再随主题分支）
+        Media::SolidColorBrush sel(Windows::UI::Color{ 0xFF, 0x5C, 0x7A, 0x38 });
+        Media::SolidColorBrush wht(Windows::UI::Color{ 0xFF, 0xFF, 0xFF, 0xFF });
+        Media::SolidColorBrush unsel(Windows::UI::Color{ 0, 0, 0, 0 });
+        for (int i = 0; i < 4; ++i)
+        {
+            auto btn = (i == 0) ? Tab0() : (i == 1) ? Tab1() : (i == 2) ? Tab2() : Tab3();
+            bool on = (i == idx);
+            btn.Background(on ? sel : unsel);
+            btn.Foreground(on ? wht : nullptr); // nullptr = 回退主题默认前景色
+        }
         }
         catch (winrt::hresult_error const& e)
         {

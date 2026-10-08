@@ -50,79 +50,68 @@
 
         <!-- ================= 展开态（1280×480） ================= -->
         <Grid x:Name="ExpandedPanel" Visibility="Collapsed" IsHitTestVisible="False" Padding="16,10,16,16">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="44"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
+            <!-- 参考图布局基因：左图标竖轨（图3 左轨）+ 底部控制带（三图通用）+ 标题左上 -->
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="48"/>
+                <ColumnDefinition Width="14"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
 
-            <!-- 页签岛：悬浮毛玻璃胶囊（Apple 风：组件即岛） -->
-            <Border Grid.Row="0" Height="40" CornerRadius="20" HorizontalAlignment="Center"
-                    Background="{ThemeResource ChipBg}" BorderBrush="{ThemeResource ChipBorder}" BorderThickness="1" Padding="8,0">
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button x:Name="Tab0" Tag="0" Click="OnTabClick" Background="Transparent"
-                            CornerRadius="6" Padding="12,6" Margin="0,0,4,0">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE80F;" FontSize="14"/>
-                            <TextBlock Text="工作台" FontSize="13"/>
-                        </StackPanel>
+            <!-- 左轨：顶部 4 页签图标（文字进 ToolTip）；底部 收起/主题/退出 -->
+            <Grid Grid.Column="0">
+                <StackPanel VerticalAlignment="Top" Spacing="10" Margin="0,6,0,0">
+                    <Button x:Name="Tab0" Tag="0" Click="OnTabClick" ToolTipService.ToolTip="工作台"
+                            Background="Transparent" BorderThickness="0" CornerRadius="18"
+                            Width="38" Height="38" Padding="0">
+                        <FontIcon Glyph="&#xE80F;" FontSize="16" FontFamily="Segoe Fluent Icons"/>
                     </Button>
-                    <Button x:Name="Tab1" Tag="1" Click="OnTabClick" Background="Transparent"
-                            CornerRadius="6" Padding="12,6" Margin="0,0,4,0">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE8B7;" FontSize="14"/>
-                            <TextBlock Text="文件" FontSize="13"/>
-                        </StackPanel>
+                    <Button x:Name="Tab1" Tag="1" Click="OnTabClick" ToolTipService.ToolTip="文件"
+                            Background="Transparent" BorderThickness="0" CornerRadius="18"
+                            Width="38" Height="38" Padding="0">
+                        <FontIcon Glyph="&#xE8B7;" FontSize="16" FontFamily="Segoe Fluent Icons"/>
                     </Button>
-                    <Button x:Name="Tab2" Tag="2" Click="OnTabClick" Background="Transparent"
-                            CornerRadius="6" Padding="12,6" Margin="0,0,4,0">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE8BD;" FontSize="14"/>
-                            <TextBlock Text="对话" FontSize="13"/>
-                        </StackPanel>
+                    <Button x:Name="Tab2" Tag="2" Click="OnTabClick" ToolTipService.ToolTip="对话"
+                            Background="Transparent" BorderThickness="0" CornerRadius="18"
+                            Width="38" Height="38" Padding="0">
+                        <FontIcon Glyph="&#xE8BD;" FontSize="16" FontFamily="Segoe Fluent Icons"/>
                     </Button>
-                    <Button x:Name="Tab3" Tag="3" Click="OnTabClick" Background="Transparent"
-                            CornerRadius="6" Padding="12,6">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE77B;" FontSize="14"/>
-                            <TextBlock Text="我" FontSize="13"/>
-                        </StackPanel>
+                    <Button x:Name="Tab3" Tag="3" Click="OnTabClick" ToolTipService.ToolTip="我"
+                            Background="Transparent" BorderThickness="0" CornerRadius="18"
+                            Width="38" Height="38" Padding="0">
+                        <FontIcon Glyph="&#xE77B;" FontSize="16" FontFamily="Segoe Fluent Icons"/>
                     </Button>
                 </StackPanel>
-            </Border>
 
-            <!-- 收起：独立小圆岛 -->
-            <Border Grid.Row="0" Width="30" Height="30" CornerRadius="15" HorizontalAlignment="Right"
-                    VerticalAlignment="Center" Background="{ThemeResource ChipBg}" BorderBrush="{ThemeResource ChipBorder}" BorderThickness="1">
-                <Button x:Name="CollapseBtn" Content="—" FontSize="16" FontWeight="SemiBold"
-                        Click="OnCollapseClick" ToolTipService.ToolTip="收起（Esc）"
-                        Background="Transparent" BorderThickness="0" CornerRadius="15"
-                        HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-            </Border>
+                <!-- 轨底控制带：主题/退出/收起（下沉到底部，参考图底部操作带基因） -->
+                <StackPanel VerticalAlignment="Bottom" Spacing="10" Margin="0,0,0,4">
+                    <Border Width="34" Height="34" CornerRadius="17"
+                            Background="{ThemeResource ChipBg}" BorderBrush="{ThemeResource ChipBorder}" BorderThickness="1">
+                        <Button x:Name="ThemeBtn" Click="OnThemeToggleClick" ToolTipService.ToolTip="切换黑白风格"
+                                Background="Transparent" BorderThickness="0" CornerRadius="17"
+                                HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                            <FontIcon x:Name="ThemeIcon" Glyph="&#xE706;" FontSize="16" FontFamily="Segoe Fluent Icons"/>
+                        </Button>
+                    </Border>
+                    <Border Width="34" Height="34" CornerRadius="17"
+                            Background="{ThemeResource ChipBg}" BorderBrush="{ThemeResource ChipBorder}" BorderThickness="1">
+                        <Button x:Name="ExitBtn" Click="OnExitClick" ToolTipService.ToolTip="退出灵动岛"
+                                Background="Transparent" BorderThickness="0" CornerRadius="17"
+                                HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                            <FontIcon Glyph="&#xE711;" FontSize="15" FontFamily="Segoe Fluent Icons"/>
+                        </Button>
+                    </Border>
+                    <Border Width="34" Height="34" CornerRadius="17"
+                            Background="{ThemeResource ChipBg}" BorderBrush="{ThemeResource ChipBorder}" BorderThickness="1">
+                        <Button x:Name="CollapseBtn" Content="—" FontSize="16" FontWeight="SemiBold"
+                                Click="OnCollapseClick" ToolTipService.ToolTip="收起（Esc）"
+                                Background="Transparent" BorderThickness="0" CornerRadius="17"
+                                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                    </Border>
+                </StackPanel>
+            </Grid>
 
-            <!-- 退出：独立小圆岛（托盘菜单 P1 前的退出入口） -->
-            <Border Grid.Row="0" Width="30" Height="30" CornerRadius="15" HorizontalAlignment="Right"
-                    VerticalAlignment="Center" Margin="0,0,42,0"
-                    Background="{ThemeResource ChipBg}" BorderBrush="{ThemeResource ChipBorder}" BorderThickness="1">
-                <Button x:Name="ExitBtn" Click="OnExitClick" ToolTipService.ToolTip="退出灵动岛"
-                        Background="Transparent" BorderThickness="0" CornerRadius="15"
-                        HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                    <FontIcon Glyph="&#xE711;" FontSize="15" FontFamily="Segoe Fluent Icons"/>
-                </Button>
-            </Border>
-
-            <!-- 主题切换：独立小圆岛（黑白风格一键换，退出键左侧） -->
-            <Border Grid.Row="0" Width="30" Height="30" CornerRadius="15" HorizontalAlignment="Right"
-                    VerticalAlignment="Center" Margin="0,0,84,0"
-                    Background="{ThemeResource ChipBg}" BorderBrush="{ThemeResource ChipBorder}" BorderThickness="1">
-                <Button x:Name="ThemeBtn" Click="OnThemeToggleClick" ToolTipService.ToolTip="切换黑白风格"
-                        Background="Transparent" BorderThickness="0" CornerRadius="15"
-                        HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                    <FontIcon x:Name="ThemeIcon" Glyph="&#xE706;" FontSize="16" FontFamily="Segoe Fluent Icons"/>
-                </Button>
-            </Border>
-
-            <!-- 内容岛：双层嵌套内核（Double-Bezel：壳=IslandFrame 发丝环，核=独立底色+大圆角） -->
-            <Border Grid.Row="1" CornerRadius="18" Margin="0,8,0,0"
+            <!-- 内容岛：双层嵌套内核（壳=IslandFrame 发丝环，核=独立底色+18px 圆角），占轨右全部 -->
+            <Border Grid.Column="2" CornerRadius="18" Margin="0,6,0,0"
                     Background="{ThemeResource ContentBg}" BorderBrush="{ThemeResource ContentBorder}" BorderThickness="1" Padding="18">
                 <Grid x:Name="ContentHost">
 
