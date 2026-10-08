@@ -105,7 +105,7 @@
                 <Button x:Name="ThemeBtn" Click="OnThemeToggleClick" ToolTipService.ToolTip="切换黑白风格"
                         Background="Transparent" BorderThickness="0" CornerRadius="15"
                         HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                    <FontIcon x:Name="ThemeIcon" Glyph="&#xE706;" FontSize="12"/>
+                    <FontIcon x:Name="ThemeIcon" Glyph="&#xE706;" FontSize="15"/>
                 </Button>
             </Border>
 
