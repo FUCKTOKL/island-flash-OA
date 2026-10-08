@@ -38,6 +38,19 @@ namespace winrt::IslandApp::implementation
         return { L(a.X, b.X), L(a.Y, b.Y), L(a.Width, b.Width), L(a.Height, b.Height) };
     }
 
+    // 刘海形窗口区域（苹果13语言）：贴屏上缘直角 + 底部圆角。
+    // WinUI3 无异形透明窗口，DWM 圆角又四角统一 → SetWindowRgn 硬裁剪；
+    // XAML 侧 IslandFrame 同形 CornerRadius 叠渐变层，硬边视觉上不可见
+    static void ApplyNotchRgn(HWND hwnd, int32_t w, int32_t h)
+    {
+        int r = 22; // 底部圆角半径（物理像素）
+        HRGN rgn = CreateRoundRectRgn(0, 0, w + 1, h + 1, r, r);
+        HRGN top = CreateRectRgn(0, 0, w + 1, r);
+        CombineRgn(rgn, rgn, top, RGN_OR); // 顶部补成直角
+        SetWindowRgn(hwnd, rgn, TRUE);
+        DeleteObject(top); // rgn 所有权归窗口
+    }
+
     // 诊断日志：追加到 %TEMP%\ifoa-island-crash.log（定位启动期异常用）
     static void LogDiag(char const* msg)
     {
@@ -137,7 +150,7 @@ namespace winrt::IslandApp::implementation
         // DWM 圆角（Win10 自动忽略）。
         // ponytail: WASDK 无真透明窗口，18px 全胶囊圆角做不了；DWM ROUND(≈8px) 先近似，
         // 升级路径 = WASDK 透明窗口 API 成熟后改自绘圆角
-        DWM_WINDOW_CORNER_PREFERENCE corner = DWMWCP_ROUND;
+        DWM_WINDOW_CORNER_PREFERENCE corner = DWMWCP_DONOTROUND; // 刘海形由 SetWindowRgn 接管，DWM 不圆角
         DwmSetWindowAttribute(m_hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, &corner, sizeof(corner));
 
         // 整窗毛玻璃（Apple 风）；Win10/关闭透明效果时自动回退不透明
@@ -149,6 +162,7 @@ namespace winrt::IslandApp::implementation
         m_capRect = { wa.X + (wa.Width - CAP_W) / 2, wa.Y + TOP_MARGIN, CAP_W, CAP_H };
         LoadPosition();
         m_appWindow.MoveAndResize(m_capRect);
+        ApplyNotchRgn(m_hwnd, m_capRect.Width, m_capRect.Height);
     }
 
     // 位置持久化：Win32 注册表（HKCU\Software\IF-OA\Island）。
@@ -234,7 +248,9 @@ namespace winrt::IslandApp::implementation
 
         double t = (std::min)(1.0, m_frame / static_cast<double>(ANIM_FRAMES)); // (std::min)防 windows.h 宏
         double e = 1.0 - std::pow(1.0 - t, 3.0); // ease-out cubic
-        m_appWindow.MoveAndResize(LerpRect(m_from, m_to, e));
+        auto r = LerpRect(m_from, m_to, e);
+        m_appWindow.MoveAndResize(r);
+        ApplyNotchRgn(m_hwnd, r.Width, r.Height); // 每帧同步裁剪，动画中形状不断裂
 
         if (m_frame >= ANIM_FRAMES)
         {
@@ -770,6 +786,14 @@ namespace winrt::IslandApp::implementation
         Tab1().FontWeight(idx == 1 ? winrt::Microsoft::UI::Text::FontWeights::Bold() : winrt::Microsoft::UI::Text::FontWeights::Normal());
         Tab2().FontWeight(idx == 2 ? winrt::Microsoft::UI::Text::FontWeights::Bold() : winrt::Microsoft::UI::Text::FontWeights::Normal());
         Tab3().FontWeight(idx == 3 ? winrt::Microsoft::UI::Text::FontWeights::Bold() : winrt::Microsoft::UI::Text::FontWeights::Normal());
+
+        // 选中页签 = 青绿微光药丸（叠加在毛玻璃页签岛上）
+        auto sel = Media::SolidColorBrush(Windows::UI::Color{ 0xFF, 0x2A, 0x3D, 0x35 });
+        auto unsel = Media::SolidColorBrush(Windows::UI::Color{ 0, 0, 0, 0 });
+        Tab0().Background(idx == 0 ? sel : unsel);
+        Tab1().Background(idx == 1 ? sel : unsel);
+        Tab2().Background(idx == 2 ? sel : unsel);
+        Tab3().Background(idx == 3 ? sel : unsel);
         }
         catch (winrt::hresult_error const& e)
         {
@@ -813,6 +837,7 @@ namespace winrt::IslandApp::implementation
             m_capRect.X = std::clamp(m_capRect.X, wa.X, wa.X + wa.Width - CAP_W);
             m_capRect.Y = std::clamp(m_capRect.Y, wa.Y, wa.Y + wa.Height - CAP_H);
             m_appWindow.MoveAndResize(m_capRect);
+            ApplyNotchRgn(m_hwnd, m_capRect.Width, m_capRect.Height);
         }
     }
 
