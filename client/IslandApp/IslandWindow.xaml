@@ -11,9 +11,9 @@
           PointerMoved="OnRootPointerMoved"
           PointerReleased="OnRootPointerReleased">
 
-        <!-- 刘海框（白色岛体版）：贴屏上缘直角 + 底部圆角；XAML 圆角(20) < 区域裁剪(24)，
-             白色层溢出裁剪边，边缘残白融入岛体（拍板：白岛/黑字/无亚克力） -->
-        <Border x:Name="IslandFrame" CornerRadius="0,0,20,20">
+        <!-- 刘海框（理想态参考图）：贴屏上缘直角 + 底部圆角(裁剪28>XAML20)；一圈发丝描边 -->
+        <Border x:Name="IslandFrame" CornerRadius="0,0,20,20"
+                BorderBrush="{ThemeResource FrameEdge}" BorderThickness="1">
             <Border.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                     <GradientStop Color="{ThemeResource IslandTopColor}" Offset="0"/>

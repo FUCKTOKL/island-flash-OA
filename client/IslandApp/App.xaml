@@ -30,6 +30,7 @@
                     <SolidColorBrush x:Key="LoginBg" Color="#FFFFFFFF" />
                     <SolidColorBrush x:Key="LoginBorder" Color="#16000000" />
                     <SolidColorBrush x:Key="DashBrush" Color="#CC1F2329" />
+                    <SolidColorBrush x:Key="FrameEdge" Color="#0F000000" />
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="Dark">
                     <!-- 黑岛 -->
@@ -45,6 +46,7 @@
                     <SolidColorBrush x:Key="LoginBg" Color="#FF14171C" />
                     <SolidColorBrush x:Key="LoginBorder" Color="#22FFFFFF" />
                     <SolidColorBrush x:Key="DashBrush" Color="#99FFFFFF" />
+                    <SolidColorBrush x:Key="FrameEdge" Color="#30FFFFFF" />
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
         </ResourceDictionary>

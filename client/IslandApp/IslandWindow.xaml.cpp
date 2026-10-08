@@ -44,7 +44,7 @@ namespace winrt::IslandApp::implementation
     // XAML 侧 IslandFrame 同形 CornerRadius 叠渐变层，硬边视觉上不可见
     static void ApplyNotchRgn(HWND hwnd, int32_t w, int32_t h)
     {
-        int r = 24; // 底部圆角半径（物理像素）；须大于 XAML 侧 20，深色层溢出裁剪边防漏白
+        int r = 28; // 底部圆角半径（物理像素）；须大于 XAML 侧 20，深色层溢出裁剪边防漏白；参考图比例更饱满
         HRGN rgn = CreateRoundRectRgn(0, 0, w + 1, h + 1, r, r);
         HRGN top = CreateRectRgn(0, 0, w + 1, r);
         CombineRgn(rgn, rgn, top, RGN_OR); // 顶部补成直角
@@ -73,9 +73,9 @@ namespace winrt::IslandApp::implementation
         InitializeComponent();
         m_dq = this->DispatcherQueue(); // WS 事件编回 UI 线程用
 
-        // 主题（注册表记忆，1 字节）：'1'=黑岛；令牌字典见 App.xaml
+        // 主题（注册表记忆，1 字节）：'0'=白岛，无记录=黑岛（理想态默认黑）；令牌字典见 App.xaml
         std::vector<BYTE> dkb;
-        m_dark = ifoa::RegReadBinary(L"dark", dkb) && !dkb.empty() && dkb[0] == '1';
+        m_dark = !ifoa::RegReadBinary(L"dark", dkb) || dkb.empty() || dkb[0] != '0';
         Root().RequestedTheme(m_dark ? ElementTheme::Dark : ElementTheme::Light);
         if (m_dark) ThemeIcon().Glyph(L"\uE708"); // 月；默认日(浅色)
 
