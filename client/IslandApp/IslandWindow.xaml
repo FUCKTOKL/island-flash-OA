@@ -21,6 +21,17 @@
                     <GradientStop Color="{ThemeResource IslandBottomColor}" Offset="1"/>
                 </LinearGradientBrush>
             </Border.Background>
+
+            <!-- 翡翠光晕（Ethereal Glass）：顶部中心向外扩散；主题令牌控强度，不挡交互 -->
+            <Border IsHitTestVisible="False">
+                <Border.Background>
+                    <RadialGradientBrush GradientOrigin="0.5,0" Center="0.5,0" RadiusX="0.75" RadiusY="1.4">
+                        <GradientStop Color="{ThemeResource GlowColor}" Offset="0"/>
+                        <GradientStop Color="#00000000" Offset="1"/>
+                    </RadialGradientBrush>
+                </Border.Background>
+            </Border>
+
             <Grid Margin="0,9,0,0">
 
         <!-- ================= 胶囊态（216×36） ================= -->
@@ -109,8 +120,8 @@
                 </Button>
             </Border>
 
-            <!-- 内容岛：浅色面板（白岛内层卡片） -->
-            <Border Grid.Row="1" CornerRadius="16" Margin="0,8,0,0"
+            <!-- 内容岛：双层嵌套内核（Double-Bezel：壳=IslandFrame 发丝环，核=独立底色+大圆角） -->
+            <Border Grid.Row="1" CornerRadius="18" Margin="0,8,0,0"
                     Background="{ThemeResource ContentBg}" BorderBrush="{ThemeResource ContentBorder}" BorderThickness="1" Padding="18">
                 <Grid x:Name="ContentHost">
 
@@ -130,7 +141,7 @@
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
-                            <TextBlock Text="待办" FontSize="14" FontWeight="SemiBold"/>
+                            <TextBlock Text="待办" FontSize="14" FontWeight="SemiBold" FontFamily="Segoe UI Variable Display" CharacterSpacing="40"/>
                             <Grid Grid.Row="1" Margin="0,8,0,10" ColumnSpacing="8">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -138,7 +149,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBox x:Name="TodoInput" PlaceholderText="添加一条待办…" FontSize="12"/>
                                 <Button Grid.Column="1" Content="添加" Click="OnAddTodoClick"
-                                        CornerRadius="6" Padding="14,6" FontSize="12"/>
+                                        CornerRadius="12" Padding="16,7" FontSize="12"/>
                             </Grid>
                             <StackPanel x:Name="TodoList" Grid.Row="2" Spacing="8"/>
                         </Grid>
@@ -148,7 +159,7 @@
                     <Border Grid.Column="1" CornerRadius="14" Background="{ThemeResource CardBg}"
                             BorderBrush="{ThemeResource CardBorder}" BorderThickness="1" Padding="14" Margin="8,0,0,0">
                         <StackPanel Spacing="6">
-                            <TextBlock Text="天气 · 北京" FontSize="14" FontWeight="SemiBold"/>
+                            <TextBlock Text="天气 · 北京" FontSize="14" FontWeight="SemiBold" FontFamily="Segoe UI Variable Display" CharacterSpacing="40"/>
                             <TextBlock x:Name="WeatherNow" Text="—" FontSize="30" FontWeight="SemiBold" Margin="0,10,0,0"/>
                             <TextBlock x:Name="WeatherDetail" Text="加载中…" Opacity="0.6" FontSize="12"/>
                         </StackPanel>
@@ -201,7 +212,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Text="我的文件" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                 <Button Grid.Column="1" Content="上传" Click="OnUploadClick"
-                                        CornerRadius="6" Padding="14,6" FontSize="12"/>
+                                        CornerRadius="12" Padding="16,7" FontSize="12"/>
                             </Grid>
                             <ScrollViewer Grid.Row="1" Margin="0,10,0,0" VerticalScrollBarVisibility="Auto">
                                 <StackPanel x:Name="MyFileList" Spacing="6"/>
@@ -235,6 +246,7 @@
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
                             <TextBlock x:Name="ChatTitle" Text="选择左侧会话" FontSize="14"
+                                       FontFamily="Segoe UI Variable Display" CharacterSpacing="40"
                                        FontWeight="SemiBold" Margin="2,0,0,6"/>
                             <ScrollViewer x:Name="ChatScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto">
                                 <StackPanel x:Name="MsgList" Spacing="6"/>
@@ -247,7 +259,7 @@
                                 <TextBox x:Name="MsgInput" PlaceholderText="发消息…（Enter 发送）" FontSize="12"
                                          KeyDown="OnMsgKey"/>
                                 <Button Grid.Column="1" Content="发送" Click="OnSendClick"
-                                        CornerRadius="6" Padding="14,6" FontSize="12"/>
+                                        CornerRadius="12" Padding="16,7" FontSize="12"/>
                             </Grid>
                         </Grid>
                     </Border>
@@ -273,7 +285,7 @@
                 <StackPanel Spacing="10">
                     <FontIcon Glyph="&#xE7B8;" FontSize="28" Foreground="{ThemeResource IslandAccentBrush}"/>
                     <TextBlock Text="IF-OA 灵动岛" FontSize="20" FontWeight="SemiBold"
-                               FontFamily="Segoe UI Variable Display" Margin="0,-2,0,0"/>
+                               FontFamily="Segoe UI Variable Display" CharacterSpacing="60" Margin="0,-2,0,0"/>
                     <TextBlock Text="登录以连接办公服务" FontSize="12" Opacity="0.55"/>
 
                     <TextBlock Text="用户名" FontSize="12" Opacity="0.7" Margin="0,8,0,0"/>
@@ -287,9 +299,9 @@
                                Foreground="{ThemeResource IslandDangerBrush}"
                                TextWrapping="Wrap" Visibility="Collapsed"/>
                     <Button x:Name="LoginBtn" Content="登录" Click="OnLoginClick"
-                            HorizontalAlignment="Stretch" CornerRadius="8"
+                            HorizontalAlignment="Stretch" CornerRadius="14"
                             Background="{ThemeResource IslandAccentBrush}" Foreground="White"
-                            Margin="0,6,0,0"/>
+                            Margin="0,8,0,0"/>
                 </StackPanel>
             </Border>
         </Grid>

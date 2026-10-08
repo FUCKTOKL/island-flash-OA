@@ -14,39 +14,44 @@
             <SolidColorBrush x:Key="IslandAccentBrush" Color="#FF35A078" />
             <SolidColorBrush x:Key="IslandDangerBrush" Color="#FFE5484D" />
 
-            <!-- 黑白双主题令牌：切换只翻 Root.RequestedTheme，所有 ThemeResource 自动跟随 -->
+            <!-- 双主题令牌（high-end-visual-design 语言）：
+                 黑岛 = Ethereal Glass（OLED 深黑 + 翡翠光晕 + 10% 白发丝）
+                 白岛 = Editorial Luxury（暖奶油纸感，拒绝冷临床白）
+                 切换只翻 Root.RequestedTheme，全部 ThemeResource 自动跟随 -->
             <ResourceDictionary.ThemeDictionaries>
                 <ResourceDictionary x:Key="Light">
-                    <!-- 白岛 -->
-                    <Color x:Key="IslandTopColor">#FFFEFEFE</Color>
-                    <Color x:Key="IslandBottomColor">#FFF0F2F6</Color>
-                    <SolidColorBrush x:Key="RootBg" Color="#FFFDFDFE" />
-                    <SolidColorBrush x:Key="CardBg" Color="#FFEFF1F6" />
-                    <SolidColorBrush x:Key="CardBorder" Color="#12000000" />
-                    <SolidColorBrush x:Key="ChipBg" Color="#FFF4F6F9" />
-                    <SolidColorBrush x:Key="ChipBorder" Color="#16000000" />
-                    <SolidColorBrush x:Key="ContentBg" Color="#FFF8F9FB" />
-                    <SolidColorBrush x:Key="ContentBorder" Color="#16000000" />
-                    <SolidColorBrush x:Key="LoginBg" Color="#FFFFFFFF" />
-                    <SolidColorBrush x:Key="LoginBorder" Color="#16000000" />
-                    <SolidColorBrush x:Key="DashBrush" Color="#CC1F2329" />
-                    <SolidColorBrush x:Key="FrameEdge" Color="#0F000000" />
+                    <!-- 暖奶油（Editorial Luxury） -->
+                    <Color x:Key="IslandTopColor">#FFFDFAF4</Color>
+                    <Color x:Key="IslandBottomColor">#FFF3EFE7</Color>
+                    <Color x:Key="GlowColor">#0F35A078</Color>
+                    <SolidColorBrush x:Key="RootBg" Color="#FFFAF7F0" />
+                    <SolidColorBrush x:Key="CardBg" Color="#FFF5F1E8" />
+                    <SolidColorBrush x:Key="CardBorder" Color="#14000000" />
+                    <SolidColorBrush x:Key="ChipBg" Color="#FFEDE8DD" />
+                    <SolidColorBrush x:Key="ChipBorder" Color="#18000000" />
+                    <SolidColorBrush x:Key="ContentBg" Color="#FFFCFAF4" />
+                    <SolidColorBrush x:Key="ContentBorder" Color="#13000000" />
+                    <SolidColorBrush x:Key="LoginBg" Color="#FFFFFDF9" />
+                    <SolidColorBrush x:Key="LoginBorder" Color="#15000000" />
+                    <SolidColorBrush x:Key="DashBrush" Color="#CC2A2620" />
+                    <SolidColorBrush x:Key="FrameEdge" Color="#10000000" />
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="Dark">
-                    <!-- 黑岛 -->
-                    <Color x:Key="IslandTopColor">#FF131519</Color>
-                    <Color x:Key="IslandBottomColor">#FF1D2127</Color>
-                    <SolidColorBrush x:Key="RootBg" Color="#FF131519" />
-                    <SolidColorBrush x:Key="CardBg" Color="#FF22262D" />
+                    <!-- OLED 玻璃（Ethereal Glass） -->
+                    <Color x:Key="IslandTopColor">#FF090A0C</Color>
+                    <Color x:Key="IslandBottomColor">#FF101318</Color>
+                    <Color x:Key="GlowColor">#2035A078</Color>
+                    <SolidColorBrush x:Key="RootBg" Color="#FF070809" />
+                    <SolidColorBrush x:Key="CardBg" Color="#FF12151B" />
                     <SolidColorBrush x:Key="CardBorder" Color="#14FFFFFF" />
-                    <SolidColorBrush x:Key="ChipBg" Color="#FF22252C" />
+                    <SolidColorBrush x:Key="ChipBg" Color="#FF171B22" />
                     <SolidColorBrush x:Key="ChipBorder" Color="#1FFFFFFF" />
-                    <SolidColorBrush x:Key="ContentBg" Color="#FF20242B" />
+                    <SolidColorBrush x:Key="ContentBg" Color="#FF15181F" />
                     <SolidColorBrush x:Key="ContentBorder" Color="#16FFFFFF" />
-                    <SolidColorBrush x:Key="LoginBg" Color="#FF14171C" />
+                    <SolidColorBrush x:Key="LoginBg" Color="#FF111419" />
                     <SolidColorBrush x:Key="LoginBorder" Color="#22FFFFFF" />
-                    <SolidColorBrush x:Key="DashBrush" Color="#99FFFFFF" />
-                    <SolidColorBrush x:Key="FrameEdge" Color="#30FFFFFF" />
+                    <SolidColorBrush x:Key="DashBrush" Color="#A6FFFFFF" />
+                    <SolidColorBrush x:Key="FrameEdge" Color="#17FFFFFF" />
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
         </ResourceDictionary>
