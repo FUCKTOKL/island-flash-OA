@@ -81,7 +81,7 @@
             <!-- 收起：独立小圆岛 -->
             <Border Grid.Row="0" Width="30" Height="30" CornerRadius="15" HorizontalAlignment="Right"
                     VerticalAlignment="Center" Background="{ThemeResource ChipBg}" BorderBrush="{ThemeResource ChipBorder}" BorderThickness="1">
-                <Button x:Name="CollapseBtn" Content="—" FontSize="12"
+                <Button x:Name="CollapseBtn" Content="—" FontSize="16" FontWeight="SemiBold"
                         Click="OnCollapseClick" ToolTipService.ToolTip="收起（Esc）"
                         Background="Transparent" BorderThickness="0" CornerRadius="15"
                         HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
@@ -94,7 +94,7 @@
                 <Button x:Name="ExitBtn" Click="OnExitClick" ToolTipService.ToolTip="退出灵动岛"
                         Background="Transparent" BorderThickness="0" CornerRadius="15"
                         HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                    <FontIcon Glyph="&#xE711;" FontSize="12"/>
+                    <FontIcon Glyph="&#xE711;" FontSize="15" FontFamily="Segoe Fluent Icons"/>
                 </Button>
             </Border>
 
@@ -105,7 +105,7 @@
                 <Button x:Name="ThemeBtn" Click="OnThemeToggleClick" ToolTipService.ToolTip="切换黑白风格"
                         Background="Transparent" BorderThickness="0" CornerRadius="15"
                         HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                    <FontIcon x:Name="ThemeIcon" Glyph="&#xE706;" FontSize="15"/>
+                    <FontIcon x:Name="ThemeIcon" Glyph="&#xE706;" FontSize="16" FontFamily="Segoe Fluent Icons"/>
                 </Button>
             </Border>
 
