@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>IF-OA · 叁</title>
+<style>
+/* 档案抽屉 PUNCH-CARD ARCHIVE：打孔卡/索引卡/红戳章/纸噪点。灵感：符号串的密集杂讯与档案混乱感 */
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#E9E4D3;color:#26221A;min-height:100vh;display:flex;flex-direction:column;align-items:center;
+  font:13px/1.6 "Cascadia Mono","Courier New",monospace}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;opacity:.5;
+  background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(38,34,26,.03) 3px 4px)}
+.desktop{width:100%;padding:30px 0 64px}
+.capsule{width:216px;height:36px;background:#F5F1E2;border:1px solid #26221A;border-bottom:none;
+  border-radius:18px 18px 0 0;margin:0 auto;display:flex;align-items:center;justify-content:center;gap:8px;font-size:10px;letter-spacing:3px}
+.capsule b{color:#C4342B}
+.island{width:1280px;height:480px;background:#F5F1E2;border:1px solid #26221A;position:relative;
+  display:grid;grid-template-columns:420px 330px 1fr;grid-template-rows:34px 1fr}
+.head{grid-column:1/4;border-bottom:2px solid #26221A;display:flex;align-items:center;gap:22px;padding:0 16px;font-size:11px;letter-spacing:2px}
+.head b{background:#26221A;color:#F5F1E2;padding:2px 10px}
+.head .st{margin-left:auto;color:#C4342B}
+/* 打孔带 */
+.punch{position:absolute;bottom:0;left:0;right:0;height:16px;border-top:1px solid #26221A;
+  background-image:radial-gradient(circle 3px, #E9E4D3 3px, transparent 3.5px);
+  background-size:22px 16px;background-color:#F5F1E2}
+/* 抽屉柜：待办=索引卡抽屉 */
+.cab{border-right:1px solid #26221A;padding:14px;position:relative}
+.cab h3,.files h3,.chat h3{font-size:11px;letter-spacing:3px;margin-bottom:10px}
+.cab h3::before{content:"§ "}
+.card{background:#FFFDF4;border:1px solid #26221A;margin-bottom:9px;padding:9px 12px;position:relative;
+  display:flex;gap:10px;align-items:baseline;box-shadow:2px 2px 0 rgba(38,34,26,.15)}
+.card .no{font-size:10px;color:#8A8272}
+.card .tx{flex:1;font-size:14px}
+.card .stamp{font-size:9px;border:2px solid #C4342B;color:#C4342B;padding:1px 6px;transform:rotate(-8deg);letter-spacing:1px}
+.card.ok .tx{text-decoration:line-through;color:#8A8272}
+.card.ok .stamp{border-color:#5B7A4A;color:#5B7A4A}
+.addcard{display:flex;gap:7px;margin-top:10px}
+.addcard input{flex:1;background:#FFFDF4;border:1px solid #26221A;padding:7px 10px;font:inherit}
+.addcard button{background:#26221A;color:#F5F1E2;border:0;font:inherit;font-weight:700;padding:0 14px;cursor:pointer}
+/* 气象记录表 */
+.weather{border-right:1px solid #26221A;padding:14px;display:flex;flex-direction:column}
+.weather table{width:100%;border-collapse:collapse;margin-top:6px}
+.weather td,.weather th{border:1px solid #26221A;padding:4px 8px;font-size:11px;text-align:left}
+.weather th{background:#26221A;color:#F5F1E2;font-weight:400;letter-spacing:1px}
+.weather .big{font-size:64px;line-height:1;letter-spacing:-2px;margin:10px 0 2px}
+.weather .big small{font-size:16px;letter-spacing:0}
+.weather .note{font-size:10px;color:#8A8272;margin-top:6px}
+/* 电报/传阅单 */
+.chat{padding:14px;display:flex;flex-direction:column}
+.slip{background:#FFFDF4;border:1px solid #26221A;padding:8px 11px;margin-bottom:8px;box-shadow:2px 2px 0 rgba(38,34,26,.12)}
+.slip .m{font-size:9px;color:#8A8272;letter-spacing:2px;display:block}
+.slip.me{margin-left:36px;border-left:4px solid #C4342B}
+.slip.o{margin-right:36px;border-left:4px solid #26221A}
+.slip .stamped{float:right;font-size:9px;border:2px solid #C4342B;color:#C4342B;padding:0 5px;transform:rotate(6deg)}
+.send{margin-top:auto;display:flex;gap:7px}
+.send input{flex:1;background:#FFFDF4;border:1px solid #26221A;padding:7px 10px;font:inherit}
+.send button{background:#C4342B;color:#F5F1E2;border:0;font:inherit;font-weight:700;padding:0 14px;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="desktop">
+  <div class="capsule">档案编号 <b>IF-OA-003</b> · 未传阅 3</div>
+  <div class="island">
+    <div class="head"><b>工作台卷宗</b><span>文件库 ›</span><span>传阅单 ›</span><span>个人档 ›</span><span class="st">★ 特急 1 件待批</span></div>
+    <div class="cab">
+      <h3>§ 待办索引 · 第 7 抽屉</h3>
+      <div class="card ok"><span class="no">07-011</span><span class="tx">季度预算表交财务</span><span class="stamp">归档</span></div>
+      <div class="card"><span class="no">07-012</span><span class="tx">回复设计部配色提案</span><span class="stamp">待办</span></div>
+      <div class="card"><span class="no">07-013</span><span class="tx">约王工评审接口契约</span><span class="stamp">待办</span></div>
+      <div class="card"><span class="no">07-014</span><span class="tx">给新同学开仓库权限</span><span class="stamp">待办</span></div>
+      <div class="addcard"><input placeholder="新增索引卡…"><button>立卡</button></div>
+    </div>
+    <div class="weather">
+      <h3>§ 气象观测记录</h3>
+      <div class="big">14<small>°C 多云转晴</small></div>
+      <table><tr><th>项目</th><th>记录</th></tr>
+        <tr><td>台站</td><td>北京 54511</td></tr>
+        <tr><td>区间</td><td>13° — 21°</td></tr>
+        <tr><td>风向</td><td>东北风 2 级</td></tr>
+        <tr><td>湿度</td><td>42%</td></tr></table>
+      <div class="note">观测员：Open-Meteo · 时间：09:41</div>
+    </div>
+    <div class="chat">
+      <h3>§ 传阅单 · 今日</h3>
+      <div class="slip o"><span class="m">李雷 · 产品组 · 09:32</span>新版岛的颜色定了吗？</div>
+      <div class="slip me"><span class="m">已阅回 · 09:33</span>定了，下午发你<span class="stamped">签收</span></div>
+      <div class="slip o"><span class="m">韩梅梅 · 09:40</span>报销单已批，记得看</div>
+      <div class="send"><input placeholder="誊写传阅…"><button>递送</button></div>
+    </div>
+    <div class="punch"></div>
+  </div>
+</div>
+</body>
+</html>

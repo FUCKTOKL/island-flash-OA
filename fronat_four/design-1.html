@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>IF-OA · 壹</title>
+<style>
+/* 碎拍拼贴 RHYTHM-CUT：错位/裁切/撞色/磁带轨。灵感：符号碎裂与大小写蹦跳 */
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0B0B0D;color:#F2F2EE;font:14px/1.5 "Cascadia Mono","Consolas",monospace;
+     min-height:100vh;display:flex;flex-direction:column;align-items:center;overflow-x:hidden}
+.desktop{width:100%;flex:1;padding:28px 0 60px;position:relative;
+  background:
+    radial-gradient(ellipse 60% 40% at 20% 10%, rgba(200,255,0,.05), transparent),
+    radial-gradient(ellipse 50% 40% at 85% 80%, rgba(255,61,127,.05), transparent)}
+/* 胶囊 */
+.capsule{width:216px;height:36px;background:#101014;border:1px solid #2A2A30;border-radius:18px;
+  margin:0 auto 14px;position:relative}
+.capsule::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:44px;height:4px;background:#C8FF00;border-radius:2px}
+.capsule .dot{position:absolute;right:18px;top:50%;transform:translateY(-50%);
+  width:10px;height:10px;border-radius:5px;background:#FF3D7F}
+/* 展开岛：故意错位的三块拼贴 */
+.island{width:1280px;height:480px;position:relative;background:#101014;
+  border:1px solid #2A2A30;border-top:none;border-radius:0 0 14px 14px;overflow:hidden}
+.ticker{position:absolute;top:0;left:0;right:0;height:26px;background:#C8FF00;color:#0B0B0D;
+  font-weight:700;letter-spacing:2px;display:flex;align-items:center;overflow:hidden;white-space:nowrap}
+.ticker span{display:inline-block;animation:mq 18s linear infinite;padding-left:100%}
+@keyframes mq{to{transform:translateX(-100%)}}
+.zone{position:absolute;background:#16161B;border:1px dashed #3A3A44}
+.zone .tag{position:absolute;top:-11px;left:14px;background:#C8FF00;color:#0B0B0D;
+  font-size:11px;font-weight:700;padding:1px 10px;letter-spacing:2px}
+/* 左：待办磁带轨 —— 故意负旋转 */
+.z-todo{left:26px;top:52px;width:400px;height:392px;transform:rotate(-.6deg)}
+.track{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid #26262E;margin:8px 10px}
+.track .no{font-size:22px;font-weight:800;color:#C8FF00;min-width:34px}
+.track .tx{flex:1;font-size:15px}
+.track .st{font-size:10px;letter-spacing:1px;padding:2px 8px;border:1px solid #3A3A44;color:#8A8A96}
+.track.done .tx{color:#5A5A66;text-decoration:line-through}
+.track.done .st{background:#FF3D7F;border-color:#FF3D7F;color:#0B0B0D}
+.add{margin:12px 10px 0;display:flex;gap:8px}
+.add input{flex:1;background:#0B0B0D;border:1px solid #3A3A44;color:#F2F2EE;padding:9px 12px;font:inherit}
+.add button{background:#C8FF00;color:#0B0B0D;border:0;font:inherit;font-weight:700;padding:0 20px;cursor:pointer}
+/* 中：天气 —— 大数字被裁切一半，超大溢出 */
+.z-weather{left:446px;top:36px;width:330px;height:250px;transform:rotate(.8deg);overflow:hidden}
+.z-weather .big{position:absolute;left:-8px;bottom:-58px;font-size:190px;font-weight:800;
+  color:#C8FF00;letter-spacing:-8px}
+.z-weather .cond{position:absolute;right:14px;top:36px;text-align:right}
+.z-weather .cond .c1{font-size:20px}
+.z-weather .cond .c2{color:#8A8A96;font-size:12px;margin-top:4px}
+.z-weather .city{position:absolute;right:14px;top:12px;font-size:10px;letter-spacing:3px;color:#FF3D7F}
+/* 中下：音乐碎片 —— 斜切 */
+.z-music{left:452px;top:306px;width:318px;height:138px;transform:rotate(-1.2deg);overflow:hidden}
+.z-music .disc{position:absolute;right:24px;top:50%;transform:translateY(-50%);
+  width:92px;height:92px;border-radius:50%;border:10px solid #26262E}
+.z-music .disc::after{content:"";position:absolute;inset:26px;border-radius:50%;background:#FF3D7F}
+.z-music .t{font-size:16px;margin:22px 0 6px 18px}
+.z-music .a{color:#8A8A96;font-size:12px;margin-left:18px}
+.z-music .eq{display:flex;gap:4px;margin:14px 0 0 18px}
+.z-music .eq i{width:6px;background:#C8FF00;animation:eq 1s infinite}
+.z-music .eq i:nth-child(1){height:18px}.z-music .eq i:nth-child(2){height:30px;animation-delay:.2s}
+.z-music .eq i:nth-child(3){height:12px;animation-delay:.4s}.z-music .eq i:nth-child(4){height:26px;animation-delay:.1s}
+@keyframes eq{50%{transform:scaleY(.35)}}
+/* 右：对话碎块 —— 交替左右错格 */
+.z-chat{left:796px;top:52px;width:458px;height:392px}
+.msg{max-width:78%;padding:10px 14px;margin:8px 12px;font-size:14px;position:relative}
+.msg.me{margin-left:auto;background:#C8FF00;color:#0B0B0D;font-weight:600;transform:rotate(.4deg)}
+.msg.other{background:#22222B;transform:rotate(-.3deg)}
+.msg .who{font-size:10px;color:#8A8A96;display:block;margin-bottom:2px}
+.z-chat .inp{position:absolute;left:12px;right:12px;bottom:12px;display:flex;gap:8px}
+.z-chat .inp input{flex:1;background:#0B0B0D;border:1px solid #3A3A44;color:#F2F2EE;padding:9px 12px;font:inherit}
+.z-chat .inp button{background:#FF3D7F;color:#0B0B0D;border:0;font:inherit;font-weight:700;padding:0 18px;cursor:pointer}
+/* 打破常规的角标装饰 */
+.corner{position:absolute;bottom:12px;right:16px;font-size:11px;color:#3A3A44;letter-spacing:2px}
+.cutline{position:absolute;top:292px;left:440px;width:338px;border-top:1px dashed #FF3D7F;transform:rotate(-.4deg)}
+</style>
+</head>
+<body>
+<div class="desktop">
+  <div class="capsule"><i class="dot"></i></div>
+  <div class="island">
+    <div class="ticker"><span>IF-OA 工作流电台 · 09:41 · 未读 3 · 待办 5 · 北京 14° 多云 · 下一站：报销审批 ·&#160;</span></div>
+    <div class="zone z-todo"><span class="tag">TODO / 磁带 A 面</span>
+      <div class="track done"><span class="no">01</span><span class="tx">季度预算表交财务</span><span class="st">DONE</span></div>
+      <div class="track"><span class="no">02</span><span class="tx">回复设计部配色提案</span><span class="st">TODO</span></div>
+      <div class="track"><span class="no">03</span><span class="tx">约王工评审接口契约</span><span class="st">TODO</span></div>
+      <div class="track"><span class="no">04</span><span class="tx">给新同学开仓库权限</span><span class="st">TODO</span></div>
+      <div class="add"><input placeholder="再加一条…"><button>录入</button></div>
+    </div>
+    <div class="zone z-weather"><span class="tag">LIVE / 气象切片</span>
+      <div class="city">BEIJING / N39.9</div>
+      <div class="cond"><div class="c1">多云转晴</div><div class="c2">13° — 21° · 东北风 2 级</div></div>
+      <div class="big">14°</div>
+    </div>
+    <div class="cutline"></div>
+    <div class="zone z-music"><span class="tag">NOW / 正在播放</span>
+      <div class="t">City Pop 流行电台</div><div class="a">SMTC · 系统媒体控制</div>
+      <div class="eq"><i></i><i></i><i></i><i></i></div><div class="disc"></div>
+    </div>
+    <div class="zone z-chat"><span class="tag">CHAT / 碎块流</span>
+      <div class="msg other"><span class="who">李雷 · 产品群</span>新版岛的颜色定了吗？</div>
+      <div class="msg me">定了，撞色方案，下午发你</div>
+      <div class="msg other"><span class="who">韩梅梅</span>报销单我批了，记得看</div>
+      <div class="msg me">收到，马上去办</div>
+      <div class="inp"><input placeholder="碎一句出去…"><button>发送</button></div>
+    </div>
+    <div class="corner">CUT / GLUE / SHIFT — 碎拍拼贴 №1</div>
+  </div>
+</div>
+</body>
+</html>
