@@ -153,10 +153,14 @@ namespace winrt::IslandApp::implementation
         // 升级路径 = WASDK 透明窗口 API 成熟后改自绘圆角
         DWM_WINDOW_CORNER_PREFERENCE corner = DWMWCP_DONOTROUND; // 刘海形由 SetWindowRgn 接管，DWM 不圆角
         DwmSetWindowAttribute(m_hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, &corner, sizeof(corner));
+        // 去 DWM 默认白边框（DWMWA_BORDER_COLOR=34，DWMWA_COLOR_NONE）：白环主凶之一
+        COLORREF noBorder = 0xFFFFFFFE;
+        DwmSetWindowAttribute(m_hwnd, 34, &noBorder, sizeof(noBorder));
 
         // 整窗毛玻璃（Apple 风）；Win10/关闭透明效果时自动回退不透明
         // ponytail: 每个组件再用半透明 Border 叠出“岛”层次
-        SystemBackdrop(winrt::Microsoft::UI::Xaml::Media::DesktopAcrylicBackdrop{});
+        // SystemBackdrop 已移除：像素取证发现亚克力未被上层压暗（奶灰层=用户看到的"白边"）；
+        // 刘海语言本就是纯黑实体，改用 IslandFrame 全不透明渐变直出
 
         // 初始位置：优先用持久化值，否则主屏顶部居中；始终钳制在工作区内
         auto wa = WorkArea();
