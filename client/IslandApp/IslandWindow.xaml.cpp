@@ -39,18 +39,11 @@ namespace winrt::IslandApp::implementation
         return { L(a.X, b.X), L(a.Y, b.Y), L(a.Width, b.Width), L(a.Height, b.Height) };
     }
 
-    // 刘海形窗口区域（苹果13语言）：贴屏上缘直角 + 底部圆角。
-    // WinUI3 无异形透明窗口，DWM 圆角又四角统一 → SetWindowRgn 硬裁剪；
-    // XAML 侧 IslandFrame 同形 CornerRadius 叠渐变层，硬边视觉上不可见
-    static void ApplyNotchRgn(HWND hwnd, int32_t w, int32_t h)
-    {
-        int r = 28; // 底部圆角半径（物理像素）；须大于 XAML 侧 20，深色层溢出裁剪边防漏白；参考图比例更饱满
-        HRGN rgn = CreateRoundRectRgn(0, 0, w + 1, h + 1, r, r);
-        HRGN top = CreateRectRgn(0, 0, w + 1, r);
-        CombineRgn(rgn, rgn, top, RGN_OR); // 顶部补成直角
-        SetWindowRgn(hwnd, rgn, TRUE);
-        DeleteObject(top); // rgn 所有权归窗口
-    }
+    // 锯齿根治（v3 方案）：弃 SetWindowRgn（GDI 整数硬裁剪无 AA，弧线锯齿的元凶），
+    // 改 DWMWCP_ROUND 硬件抗锯齿圆角 + 窗口上推 EDGE_PUSH：顶部圆角被推出屏外=顶边视觉直角，
+    // 底部圆角保留 DWM 完美 AA（半径≈8物理px，比 28 小但零锯齿）。
+    // 代价：窗口实际高度 = 内容高 + EDGE_PUSH，内容需下移同量（见 XAML 包裹 Grid Margin）
+    constexpr int32_t EDGE_PUSH = 9; // 渲染≈13.5物理px > DWM 圆角 8px，确保顶弧完全出屏
 
     // 诊断日志：追加到 %TEMP%\ifoa-island-crash.log（定位启动期异常用）
     static void LogDiag(char const* msg)
@@ -161,10 +154,8 @@ namespace winrt::IslandApp::implementation
         SetWindowPos(m_hwnd, nullptr, 0, 0, 0, 0,
             SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
 
-        // DWM 圆角（Win10 自动忽略）。
-        // ponytail: WASDK 无真透明窗口，18px 全胶囊圆角做不了；DWM ROUND(≈8px) 先近似，
-        // 升级路径 = WASDK 透明窗口 API 成熟后改自绘圆角
-        DWM_WINDOW_CORNER_PREFERENCE corner = DWMWCP_DONOTROUND; // 刘海形由 SetWindowRgn 接管，DWM 不圆角
+        // DWM 原生圆角（硬件 AA）：配合 EDGE_PUSH 上推 → 顶部弧出屏=直角，底部弧零锯齿
+        DWM_WINDOW_CORNER_PREFERENCE corner = DWMWCP_ROUND;
         DwmSetWindowAttribute(m_hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, &corner, sizeof(corner));
         // 去 DWM 默认白边框（DWMWA_BORDER_COLOR=34，DWMWA_COLOR_NONE）：白环主凶之一
         COLORREF noBorder = 0xFFFFFFFE;
@@ -177,10 +168,10 @@ namespace winrt::IslandApp::implementation
 
         // 初始位置：优先用持久化值，否则主屏顶部居中；始终钳制在工作区内
         auto wa = WorkArea();
-        m_capRect = { wa.X + (wa.Width - CAP_W) / 2, wa.Y + TOP_MARGIN, CAP_W, CAP_H };
+        m_capRect = { wa.X + (wa.Width - CAP_W) / 2, wa.Y + TOP_MARGIN - EDGE_PUSH,
+                     CAP_W, CAP_H + EDGE_PUSH };
         LoadPosition();
         m_appWindow.MoveAndResize(m_capRect);
-        ApplyNotchRgn(m_hwnd, m_capRect.Width, m_capRect.Height);
     }
 
     // 位置持久化：Win32 注册表（HKCU\Software\IF-OA\Island）。
@@ -220,9 +211,9 @@ namespace winrt::IslandApp::implementation
         // 展开矩形：以胶囊中心为轴向两侧展开、向下生长，钳制屏幕边界（docs/02 §二）
         auto wa = WorkArea();
         int32_t cx = m_capRect.X + m_capRect.Width / 2;
-        m_expRect = { cx - EXP_W / 2, m_capRect.Y, EXP_W, EXP_H };
+        m_expRect = { cx - EXP_W / 2, m_capRect.Y, EXP_W, EXP_H + EDGE_PUSH };
         m_expRect.X = std::clamp(m_expRect.X, wa.X, wa.X + wa.Width - EXP_W);
-        m_expRect.Y = std::clamp(m_expRect.Y, wa.Y, wa.Y + wa.Height - EXP_H);
+        m_expRect.Y = std::clamp(m_expRect.Y, wa.Y - EDGE_PUSH, wa.Y + wa.Height - EXP_H - EDGE_PUSH);
 
         // 内容立即切换（登录态显示登录卡，否则展开面板）；进入动画在首帧布局完成后触发
         CapsulePanel().Visibility(Visibility::Collapsed);
@@ -268,7 +259,6 @@ namespace winrt::IslandApp::implementation
         double e = 1.0 - std::pow(1.0 - t, 3.0); // ease-out cubic
         auto r = LerpRect(m_from, m_to, e);
         m_appWindow.MoveAndResize(r);
-        ApplyNotchRgn(m_hwnd, r.Width, r.Height); // 每帧同步裁剪，动画中形状不断裂
 
         if (m_frame >= ANIM_FRAMES)
         {
@@ -1088,9 +1078,8 @@ namespace winrt::IslandApp::implementation
             m_capRect.X = m_dragOriginX + static_cast<int32_t>(dx);
             m_capRect.Y = m_dragOriginY + static_cast<int32_t>(dy);
             m_capRect.X = std::clamp(m_capRect.X, wa.X, wa.X + wa.Width - CAP_W);
-            m_capRect.Y = std::clamp(m_capRect.Y, wa.Y, wa.Y + wa.Height - CAP_H);
+            m_capRect.Y = std::clamp(m_capRect.Y, wa.Y - EDGE_PUSH, wa.Y + wa.Height - CAP_H - EDGE_PUSH);
             m_appWindow.MoveAndResize(m_capRect);
-            ApplyNotchRgn(m_hwnd, m_capRect.Width, m_capRect.Height);
         }
     }
 

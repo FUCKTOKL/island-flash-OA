@@ -11,8 +11,9 @@
           PointerMoved="OnRootPointerMoved"
           PointerReleased="OnRootPointerReleased">
 
-        <!-- 刘海框（理想态参考图）：贴屏上缘直角 + 底部圆角(裁剪28>XAML20)；一圈发丝描边 -->
-        <Border x:Name="IslandFrame" CornerRadius="0,0,20,20"
+        <!-- 刘海框：DWM 硬件 AA 圆角（窗口上推 EDGE_PUSH 遮顶弧=顶边直角）；
+             内容下移 9 与窗口上推量对齐；内层 6px 小圆角贴 DWM 8px 外弧 -->
+        <Border x:Name="IslandFrame" CornerRadius="0,0,6,6"
                 BorderBrush="{ThemeResource FrameEdge}" BorderThickness="1">
             <Border.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
@@ -20,7 +21,7 @@
                     <GradientStop Color="{ThemeResource IslandBottomColor}" Offset="1"/>
                 </LinearGradientBrush>
             </Border.Background>
-            <Grid>
+            <Grid Margin="0,9,0,0">
 
         <!-- ================= 胶囊态（216×36） ================= -->
         <!-- 胶囊态：极简把手（拍板：收起只留“-”）；未读时叠红点 -->
