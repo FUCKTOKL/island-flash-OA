@@ -163,7 +163,7 @@ namespace winrt::IslandApp::implementation
 
         // 整窗亚克力毛玻璃（用户拍板：半透明模糊，像素取证当年的奶灰层已证实是 NC 边框带而非亚克力本身）；
         // 自动跟随黑白主题取明暗 tint，Win10/关闭透明效果时自动回退；上层半透明令牌叠出岛层次
-        Root().SystemBackdrop(winrt::Microsoft::UI::Xaml::Media::DesktopAcrylicBackdrop());
+        SystemBackdrop(winrt::Microsoft::UI::Xaml::Media::DesktopAcrylicBackdrop()); // Window 属性，非 Grid
 
         // 初始位置：优先用持久化值，否则主屏顶部居中；始终钳制在工作区内
         auto wa = WorkArea();
