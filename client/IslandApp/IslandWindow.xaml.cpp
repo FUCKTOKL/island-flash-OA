@@ -964,7 +964,7 @@ namespace winrt::IslandApp::implementation
         }
         catch (...) {}
         ChatScroll().UpdateLayout();
-        ChatScroll().ChangeView(nullptr, box_value(ChatScroll().ScrollableHeight()), nullptr); // 滚到底
+        ChatScroll().ChangeView(nullptr, ChatScroll().ScrollableHeight(), nullptr); // 滚到底（裸 double→IReference 隐式转）
     }
 
     void IslandWindow::OnSendClick(IInspectable const&, RoutedEventArgs const&) { SendMsg(); }
