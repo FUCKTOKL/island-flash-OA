@@ -1,113 +1,434 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<title>IF-OA · 贰 · 回声湾</title>
-<style>
-/* 回声湾 ECHO COVE：无矩形全曲线、液态层叠波浪、左右镜像呼应、毛玻璃偏光。
+  <head>
+    <meta charset="UTF-8" />
+    <title>IF-OA · 贰 · 回声湾</title>
+    <style>
+      /* 回声湾 ECHO COVE：无矩形全曲线、液态层叠波浪、左右镜像呼应、毛玻璃偏光。
    灵感：符号串的 ~ 波浪与 z/Z 镜像回响 */
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:linear-gradient(160deg,#0F1B2E 0%,#16283F 55%,#1C3448 100%);color:#EAF2FB;
-  min-height:100vh;display:flex;flex-direction:column;align-items:center;overflow:hidden;
-  font:14px/1.6 "Segoe UI Variable Text","Segoe UI",sans-serif}
-/* 偏光渐变球 */
-.orb{position:fixed;border-radius:50%;filter:blur(2px);pointer-events:none}
-.o1{width:520px;height:520px;left:-140px;top:-180px;background:radial-gradient(circle at 35% 35%,rgba(94,157,255,.35),rgba(94,157,255,0) 65%)}
-.o2{width:640px;height:640px;right:-220px;bottom:-260px;background:radial-gradient(circle at 60% 40%,rgba(120,225,205,.22),rgba(120,225,205,0) 65%)}
-.desktop{width:100%;padding:26px 0 64px;position:relative;z-index:1}
-.capsule{width:216px;height:36px;margin:0 auto 10px;background:rgba(255,255,255,.08);
-  border:1px solid rgba(255,255,255,.22);border-bottom:none;border-radius:18px 18px 0 0;
-  backdrop-filter:blur(14px);display:flex;align-items:center;justify-content:center;gap:8px;color:#BED9F5;font-size:11px;letter-spacing:3px}
-.island{width:1280px;height:480px;position:relative;background:rgba(16,30,48,.55);
-  border:1px solid rgba(255,255,255,.16);border-radius:0 0 44px 44px;overflow:hidden;
-  backdrop-filter:blur(22px);padding:0 0 34px}
-/* 波浪层 */
-.wv{position:absolute;left:0;right:0;bottom:0;pointer-events:none;opacity:.5}
-.wv svg{display:block;width:100%}
-.wv1{bottom:0}.wv2{bottom:6px;opacity:.3}.wv3{bottom:14px;opacity:.15}
-.wv4{position:absolute;left:0;right:0;top:88px;transform:scaleY(-1);opacity:.12}
-.top{display:flex;align-items:center;justify-content:space-between;padding:20px 30px 0}
-.top h1{font-size:22px;font-weight:300;letter-spacing:2px}
-.top h1 b{font-weight:700;color:#8FD9C8}
-.top nav{font-size:12px;color:#A9C4E2;letter-spacing:2px}
-.top nav span{margin-left:18px;cursor:pointer}
-.top nav .on{color:#FFF;border-bottom:2px solid #8FD9C8;padding-bottom:3px}
-.cols{display:grid;grid-template-columns:1fr 340px 1.1fr;gap:0;padding:18px 30px 0;position:relative;z-index:1;height:388px}
-.blk{padding:8px 18px 0}
-.blk h3{font-size:10px;letter-spacing:4px;color:#8FD9C8;margin-bottom:14px;font-weight:600}
-/* 待办：卵石 */
-.pebble{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.07);
-  border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:10px 18px;margin-bottom:11px;backdrop-filter:blur(8px)}
-.pebble .dot{width:10px;height:10px;border-radius:50%;background:#8FD9C8;flex:none}
-.pebble.done{opacity:.45}.pebble.done .dot{background:transparent;border:1px solid #A9C4E2}
-.pebble .t{flex:1;font-size:14px}
-.pebble .n{font-size:10px;color:#A9C4E2}
-.addp{display:flex;gap:10px;margin-top:14px}
-.addp input{flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);
-  border-radius:999px;padding:10px 20px;color:#FFF;font:inherit;outline:none}
-.addp input::placeholder{color:#7E9CBC}
-.addp button{border:0;border-radius:999px;padding:10px 26px;font:inherit;font-weight:700;
-  color:#10243A;background:linear-gradient(135deg,#8FD9C8,#5E9DFF);cursor:pointer}
-/* 天气：圆中圆 */
-.wx{display:flex;flex-direction:column;align-items:center;justify-content:center}
-.wx .ring{width:210px;height:210px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  border:1px solid rgba(143,217,200,.4);
-  background:radial-gradient(circle at 38% 32%,rgba(255,255,255,.14),rgba(255,255,255,.03) 60%);
-  box-shadow:0 18px 50px rgba(20,50,80,.35)}
-.wx .ring .n{font-size:56px;font-weight:300}
-.wx .ring .n b{font-weight:700;color:#8FD9C8}
-.wx .ring .c{font-size:12px;color:#BED9F5;margin-top:2px}
-.wx .sub{font-size:11px;color:#7E9CBC;margin-top:14px;letter-spacing:1px}
-/* 对话：声呐回波气泡 */
-.bub{max-width:82%;padding:11px 18px;font-size:14px;margin-bottom:11px;line-height:1.5;
-  border-radius:26px;position:relative}
-.bub.o{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.14);border-bottom-left-radius:8px}
-.bub.me{margin-left:auto;background:linear-gradient(135deg,rgba(143,217,200,.9),rgba(94,157,255,.85));
-  color:#0B1B2E;font-weight:600;border-bottom-right-radius:8px}
-.bub .who{font-size:10px;opacity:.65;display:block;margin-bottom:1px;letter-spacing:1px}
-.sendb{margin-top:auto;display:flex;gap:10px}
-.sendb input{flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);
-  border-radius:999px;padding:11px 22px;color:#FFF;font:inherit;outline:none}
-.sendb input::placeholder{color:#7E9CBC}
-.sendb button{border:0;border-radius:999px;width:46px;height:46px;font-size:18px;color:#10243A;
-  background:linear-gradient(135deg,#8FD9C8,#5E9DFF);cursor:pointer;font-weight:800}
-</style>
-</head>
-<body>
-<i class="orb o1"></i><i class="orb o2"></i>
-<div class="desktop">
-  <div class="capsule">回 声 湾</div>
-  <div class="island">
-    <div class="wv wv4"><svg height="70" viewBox="0 0 1280 70" preserveAspectRatio="none"><path d="M0,35 C160,5 320,65 480,35 S800,5 960,35 S1200,65 1280,35 L1280,70 L0,70 Z" fill="rgba(143,217,200,.25)"/></svg></div>
-    <div class="top">
-      <h1>潮汐工作台 <b>· 早安</b></h1>
-      <nav><span class="on">湾内</span><span>礁库</span><span>回声</span><span>我</span></nav>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background: linear-gradient(
+          160deg,
+          #0f1b2e 0%,
+          #16283f 55%,
+          #1c3448 100%
+        );
+        color: #eaf2fb;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        overflow: hidden;
+        font:
+          14px/1.6 "Segoe UI Variable Text",
+          "Segoe UI",
+          sans-serif;
+      }
+      /* 偏光渐变球 */
+      .orb {
+        position: fixed;
+        border-radius: 50%;
+        filter: blur(2px);
+        pointer-events: none;
+      }
+      .o1 {
+        width: 520px;
+        height: 520px;
+        left: -140px;
+        top: -180px;
+        background: radial-gradient(
+          circle at 35% 35%,
+          rgba(94, 157, 255, 0.35),
+          rgba(94, 157, 255, 0) 65%
+        );
+      }
+      .o2 {
+        width: 640px;
+        height: 640px;
+        right: -220px;
+        bottom: -260px;
+        background: radial-gradient(
+          circle at 60% 40%,
+          rgba(120, 225, 205, 0.22),
+          rgba(120, 225, 205, 0) 65%
+        );
+      }
+      .desktop {
+        width: 100%;
+        padding: 26px 0 64px;
+        position: relative;
+        z-index: 1;
+      }
+      .capsule {
+        width: 216px;
+        height: 36px;
+        margin: 0 auto 10px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        border-bottom: none;
+        border-radius: 18px 18px 0 0;
+        backdrop-filter: blur(14px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        color: #bed9f5;
+        font-size: 11px;
+        letter-spacing: 3px;
+      }
+      .island {
+        width: 1280px;
+        height: 480px;
+        position: relative;
+        background: rgba(16, 30, 48, 0.55);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 0 0 44px 44px;
+        overflow: hidden;
+        backdrop-filter: blur(22px);
+        padding: 0 0 34px;
+      }
+      /* 波浪层 */
+      .wv {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        opacity: 0.5;
+      }
+      .wv svg {
+        display: block;
+        width: 100%;
+      }
+      .wv1 {
+        bottom: 0;
+      }
+      .wv2 {
+        bottom: 6px;
+        opacity: 0.3;
+      }
+      .wv3 {
+        bottom: 14px;
+        opacity: 0.15;
+      }
+      .wv4 {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 88px;
+        transform: scaleY(-1);
+        opacity: 0.12;
+      }
+      .top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px 30px 0;
+      }
+      .top h1 {
+        font-size: 22px;
+        font-weight: 300;
+        letter-spacing: 2px;
+      }
+      .top h1 b {
+        font-weight: 700;
+        color: #8fd9c8;
+      }
+      .top nav {
+        font-size: 12px;
+        color: #a9c4e2;
+        letter-spacing: 2px;
+      }
+      .top nav span {
+        margin-left: 18px;
+        cursor: pointer;
+      }
+      .top nav .on {
+        color: #fff;
+        border-bottom: 2px solid #8fd9c8;
+        padding-bottom: 3px;
+      }
+      .cols {
+        display: grid;
+        grid-template-columns: 1fr 340px 1.1fr;
+        gap: 0;
+        padding: 18px 30px 0;
+        position: relative;
+        z-index: 1;
+        height: 388px;
+      }
+      .blk {
+        padding: 8px 18px 0;
+      }
+      .blk h3 {
+        font-size: 10px;
+        letter-spacing: 4px;
+        color: #8fd9c8;
+        margin-bottom: 14px;
+        font-weight: 600;
+      }
+      /* 待办：卵石 */
+      .pebble {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 999px;
+        padding: 10px 18px;
+        margin-bottom: 11px;
+        backdrop-filter: blur(8px);
+      }
+      .pebble .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #8fd9c8;
+        flex: none;
+      }
+      .pebble.done {
+        opacity: 0.45;
+      }
+      .pebble.done .dot {
+        background: transparent;
+        border: 1px solid #a9c4e2;
+      }
+      .pebble .t {
+        flex: 1;
+        font-size: 14px;
+      }
+      .pebble .n {
+        font-size: 10px;
+        color: #a9c4e2;
+      }
+      .addp {
+        display: flex;
+        gap: 10px;
+        margin-top: 14px;
+      }
+      .addp input {
+        flex: 1;
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 999px;
+        padding: 10px 20px;
+        color: #fff;
+        font: inherit;
+        outline: none;
+      }
+      .addp input::placeholder {
+        color: #7e9cbc;
+      }
+      .addp button {
+        border: 0;
+        border-radius: 999px;
+        padding: 10px 26px;
+        font: inherit;
+        font-weight: 700;
+        color: #10243a;
+        background: linear-gradient(135deg, #8fd9c8, #5e9dff);
+        cursor: pointer;
+      }
+      /* 天气：圆中圆 */
+      .wx {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      .wx .ring {
+        width: 210px;
+        height: 210px;
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(143, 217, 200, 0.4);
+        background: radial-gradient(
+          circle at 38% 32%,
+          rgba(255, 255, 255, 0.14),
+          rgba(255, 255, 255, 0.03) 60%
+        );
+        box-shadow: 0 18px 50px rgba(20, 50, 80, 0.35);
+      }
+      .wx .ring .n {
+        font-size: 56px;
+        font-weight: 300;
+      }
+      .wx .ring .n b {
+        font-weight: 700;
+        color: #8fd9c8;
+      }
+      .wx .ring .c {
+        font-size: 12px;
+        color: #bed9f5;
+        margin-top: 2px;
+      }
+      .wx .sub {
+        font-size: 11px;
+        color: #7e9cbc;
+        margin-top: 14px;
+        letter-spacing: 1px;
+      }
+      /* 对话：声呐回波气泡 */
+      .bub {
+        max-width: 82%;
+        padding: 11px 18px;
+        font-size: 14px;
+        margin-bottom: 11px;
+        line-height: 1.5;
+        border-radius: 26px;
+        position: relative;
+      }
+      .bub.o {
+        background: rgba(255, 255, 255, 0.09);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-bottom-left-radius: 8px;
+      }
+      .bub.me {
+        margin-left: auto;
+        background: linear-gradient(
+          135deg,
+          rgba(143, 217, 200, 0.9),
+          rgba(94, 157, 255, 0.85)
+        );
+        color: #0b1b2e;
+        font-weight: 600;
+        border-bottom-right-radius: 8px;
+      }
+      .bub .who {
+        font-size: 10px;
+        opacity: 0.65;
+        display: block;
+        margin-bottom: 1px;
+        letter-spacing: 1px;
+      }
+      .sendb {
+        margin-top: auto;
+        display: flex;
+        gap: 10px;
+      }
+      .sendb input {
+        flex: 1;
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 999px;
+        padding: 11px 22px;
+        color: #fff;
+        font: inherit;
+        outline: none;
+      }
+      .sendb input::placeholder {
+        color: #7e9cbc;
+      }
+      .sendb button {
+        border: 0;
+        border-radius: 999px;
+        width: 46px;
+        height: 46px;
+        font-size: 18px;
+        color: #10243a;
+        background: linear-gradient(135deg, #8fd9c8, #5e9dff);
+        cursor: pointer;
+        font-weight: 800;
+      }
+    </style>
+  </head>
+  <body>
+    <i class="orb o1"></i><i class="orb o2"></i>
+    <div class="desktop">
+      <div class="capsule">回 声 湾</div>
+      <div class="island">
+        <div class="wv wv4">
+          <svg height="70" viewBox="0 0 1280 70" preserveAspectRatio="none">
+            <path
+              d="M0,35 C160,5 320,65 480,35 S800,5 960,35 S1200,65 1280,35 L1280,70 L0,70 Z"
+              fill="rgba(143,217,200,.25)"
+            />
+          </svg>
+        </div>
+        <div class="top">
+          <h1>潮汐工作台 <b>· 早安</b></h1>
+          <nav>
+            <span class="on">湾内</span><span>礁库</span><span>回声</span
+            ><span>我</span>
+          </nav>
+        </div>
+        <div class="cols">
+          <div class="blk">
+            <h3>今日拾贝</h3>
+            <div class="pebble done">
+              <i class="dot"></i><span class="t">季度预算表交财务</span
+              ><span class="n">已拾</span>
+            </div>
+            <div class="pebble">
+              <i class="dot"></i><span class="t">回复设计部配色提案</span
+              ><span class="n">待拾</span>
+            </div>
+            <div class="pebble">
+              <i class="dot"></i><span class="t">约王工评审接口契约</span
+              ><span class="n">待拾</span>
+            </div>
+            <div class="pebble">
+              <i class="dot"></i><span class="t">给新同学开仓库权限</span
+              ><span class="n">待拾</span>
+            </div>
+            <div class="addp">
+              <input placeholder="往湾里丢一颗…" /><button>拾贝</button>
+            </div>
+          </div>
+          <div class="wx">
+            <div class="ring">
+              <div class="n"><b>14</b>°</div>
+              <div class="c">多云转晴</div>
+            </div>
+            <div class="sub">北京 · 13—21° · 东北风 2 级</div>
+          </div>
+          <div class="blk">
+            <h3>回声 · 今日</h3>
+            <div class="bub o">
+              <span class="who">李雷</span>新版岛的颜色定了吗？
+            </div>
+            <div class="bub me"><span class="who">我</span>定了，下午发你</div>
+            <div class="bub o">
+              <span class="who">韩梅梅</span>报销单已批，记得看
+            </div>
+            <div class="sendb">
+              <input placeholder="向湾心说…" /><button>&#8679;</button>
+            </div>
+          </div>
+        </div>
+        <div class="wv wv3">
+          <svg height="46" viewBox="0 0 1280 46" preserveAspectRatio="none">
+            <path
+              d="M0,23 C213,-8 427,54 640,23 S1067,-8 1280,23 L1280,46 L0,46 Z"
+              fill="rgba(94,157,255,.5)"
+            />
+          </svg>
+        </div>
+        <div class="wv wv2">
+          <svg height="34" viewBox="0 0 1280 34" preserveAspectRatio="none">
+            <path
+              d="M0,17 C213,44 427,-10 640,17 S1067,44 1280,17 L1280,34 L0,34 Z"
+              fill="rgba(143,217,200,.7)"
+            />
+          </svg>
+        </div>
+        <div class="wv wv1">
+          <svg height="24" viewBox="0 0 1280 24" preserveAspectRatio="none">
+            <path
+              d="M0,12 C320,-6 960,30 1280,12 L1280,24 L0,24 Z"
+              fill="#8FD9C8"
+            />
+          </svg>
+        </div>
+      </div>
     </div>
-    <div class="cols">
-      <div class="blk">
-        <h3>今日拾贝</h3>
-        <div class="pebble done"><i class="dot"></i><span class="t">季度预算表交财务</span><span class="n">已拾</span></div>
-        <div class="pebble"><i class="dot"></i><span class="t">回复设计部配色提案</span><span class="n">待拾</span></div>
-        <div class="pebble"><i class="dot"></i><span class="t">约王工评审接口契约</span><span class="n">待拾</span></div>
-        <div class="pebble"><i class="dot"></i><span class="t">给新同学开仓库权限</span><span class="n">待拾</span></div>
-        <div class="addp"><input placeholder="往湾里丢一颗…"><button>拾贝</button></div>
-      </div>
-      <div class="wx">
-        <div class="ring"><div class="n"><b>14</b>°</div><div class="c">多云转晴</div></div>
-        <div class="sub">北京 · 13—21° · 东北风 2 级</div>
-      </div>
-      <div class="blk">
-        <h3>回声 · 今日</h3>
-        <div class="bub o"><span class="who">李雷</span>新版岛的颜色定了吗？</div>
-        <div class="bub me"><span class="who">我</span>定了，下午发你</div>
-        <div class="bub o"><span class="who">韩梅梅</span>报销单已批，记得看</div>
-        <div class="sendb"><input placeholder="向湾心说…"><button>&#8679;</button></div>
-      </div>
-    </div>
-    <div class="wv wv3"><svg height="46" viewBox="0 0 1280 46" preserveAspectRatio="none"><path d="M0,23 C213,-8 427,54 640,23 S1067,-8 1280,23 L1280,46 L0,46 Z" fill="rgba(94,157,255,.5)"/></svg></div>
-    <div class="wv wv2"><svg height="34" viewBox="0 0 1280 34" preserveAspectRatio="none"><path d="M0,17 C213,44 427,-10 640,17 S1067,44 1280,17 L1280,34 L0,34 Z" fill="rgba(143,217,200,.7)"/></svg></div>
-    <div class="wv wv1"><svg height="24" viewBox="0 0 1280 24" preserveAspectRatio="none"><path d="M0,12 C320,-6 960,30 1280,12 L1280,24 L0,24 Z" fill="#8FD9C8"/></svg></div>
-  </div>
-</div>
-</body>
+  </body>
 </html>
