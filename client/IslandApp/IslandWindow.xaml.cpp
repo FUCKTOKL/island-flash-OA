@@ -814,7 +814,7 @@ namespace winrt::IslandApp::implementation
         btn.BorderThickness(Thickness(0));
         btn.CornerRadius(CornerRadius(8));
         btn.Padding(Thickness(8, 6, 8, 6));
-        btn.HorizontalAlignment(Controls::HorizontalAlignment::Stretch);
+        btn.HorizontalAlignment(HorizontalAlignment::Stretch);
 
         auto sp = Controls::StackPanel();
         sp.Orientation(Controls::Orientation::Horizontal);
@@ -825,15 +825,15 @@ namespace winrt::IslandApp::implementation
         av.Width(32); av.Height(32); av.CornerRadius(CornerRadius(16));
         av.Background(Media::SolidColorBrush(Windows::UI::Color{ 0xFF, 0x35, 0xA0, 0x78 }));
         auto avt = Controls::TextBlock();
-        avt.Text(name.empty() ? L"?" : winrt::hstring(name.c_str(), name.c_str() + 1));
+        avt.Text(name.empty() ? winrt::hstring(L"?") : winrt::hstring(std::wstring(1, name.c_str()[0])));
         avt.FontSize(13); avt.FontWeight(winrt::Microsoft::UI::Text::FontWeights::Bold());
         avt.Foreground(Media::SolidColorBrush(Windows::UI::Color{ 0xFF, 0xFF, 0xFF, 0xFF }));
-        avt.HorizontalAlignment(Controls::HorizontalAlignment::Center);
-        avt.VerticalAlignment(Controls::VerticalAlignment::Center);
+        avt.HorizontalAlignment(HorizontalAlignment::Center);
+        avt.VerticalAlignment(VerticalAlignment::Center);
         av.Child(avt);
 
         auto mid = Controls::StackPanel();
-        mid.Spacing(1); mid.VerticalAlignment(Controls::VerticalAlignment::Center);
+        mid.Spacing(1); mid.VerticalAlignment(VerticalAlignment::Center);
         auto t1 = Controls::TextBlock(); t1.Text(name); t1.FontSize(13);
         t1.TextTrimming(TextTrimming::CharacterEllipsis); t1.MaxWidth(120);
         auto t2 = Controls::TextBlock();
@@ -853,11 +853,11 @@ namespace winrt::IslandApp::implementation
             auto ub = Controls::Border();
             ub.CornerRadius(CornerRadius(9)); ub.MinWidth(18); ub.Height(18);
             ub.Background(Media::SolidColorBrush(Windows::UI::Color{ 0xFF, 0xE5, 0x48, 0x4D }));
-            ub.VerticalAlignment(Controls::VerticalAlignment::Center);
+            ub.VerticalAlignment(VerticalAlignment::Center);
             auto ut = Controls::TextBlock(); ut.Text(std::to_wstring(unread));
             ut.FontSize(10); ut.Foreground(Media::SolidColorBrush(Windows::UI::Color{ 0xFF, 0xFF, 0xFF, 0xFF }));
-            ut.HorizontalAlignment(Controls::HorizontalAlignment::Center);
-            ut.VerticalAlignment(Controls::VerticalAlignment::Center);
+            ut.HorizontalAlignment(HorizontalAlignment::Center);
+            ut.VerticalAlignment(VerticalAlignment::Center);
             ub.Child(ut);
             sp.Children().Append(ub);
         }
@@ -910,8 +910,8 @@ namespace winrt::IslandApp::implementation
         auto col = Controls::StackPanel(); // 垂直容器：可选名字行 + 气泡行
         col.Spacing(2);
         col.MaxWidth(440);
-        col.HorizontalAlignment(mine ? Controls::HorizontalAlignment::Right
-                                      : Controls::HorizontalAlignment::Left);
+        col.HorizontalAlignment(mine ? HorizontalAlignment::Right
+                                      : HorizontalAlignment::Left);
 
         if (!mine && m_convIsGroup && m.HasKey(L"sender_name"))
         {
@@ -936,7 +936,7 @@ namespace winrt::IslandApp::implementation
         auto txt = Controls::TextBlock();
         txt.Text(MsgSummary(m));
         txt.FontSize(13);
-        txt.TextWrapping(Controls::TextWrapping::Wrap);
+        txt.TextWrapping(TextWrapping::Wrap);
         txt.MaxWidth(400);
         if (mine) txt.Foreground(Media::SolidColorBrush(Windows::UI::Color{ 0xFF, 0xFF, 0xFF, 0xFF }));
         bubble.Child(txt);
