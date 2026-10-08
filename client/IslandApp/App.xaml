@@ -22,10 +22,10 @@
                     <Color x:Key="IslandBottomColor">#E6EFEBE3</Color>
                     <Color x:Key="GlowColor">#12000000</Color>
                     <SolidColorBrush x:Key="RootBg" Color="#CCF6F4EF" />
-                    <SolidColorBrush x:Key="CardBg" Color="#B3FFFFFF" />
-                    <SolidColorBrush x:Key="CardBorder" Color="#16000000" />
-                    <SolidColorBrush x:Key="ChipBg" Color="#B3EFEDE6" />
-                    <SolidColorBrush x:Key="ChipBorder" Color="#19000000" />
+                    <SolidColorBrush x:Key="CardBg" Color="#E6FFFFFF" />
+                    <SolidColorBrush x:Key="CardBorder" Color="#1A000000" />
+                    <SolidColorBrush x:Key="ChipBg" Color="#F2F3EDE3" />
+                    <SolidColorBrush x:Key="ChipBorder" Color="#26000000" />
                     <SolidColorBrush x:Key="ContentBg" Color="#B3FDFCF8" />
                     <SolidColorBrush x:Key="ContentBorder" Color="#14000000" />
                     <SolidColorBrush x:Key="LoginBg" Color="#B3FFFEFB" />
@@ -38,10 +38,10 @@
                     <Color x:Key="IslandBottomColor">#E612161D</Color>
                     <Color x:Key="GlowColor">#26FFFFFF</Color>
                     <SolidColorBrush x:Key="RootBg" Color="#CC090B0E" />
-                    <SolidColorBrush x:Key="CardBg" Color="#B3161B26" />
-                    <SolidColorBrush x:Key="CardBorder" Color="#1FFFFFFF" />
-                    <SolidColorBrush x:Key="ChipBg" Color="#B31D2230" />
-                    <SolidColorBrush x:Key="ChipBorder" Color="#26FFFFFF" />
+                    <SolidColorBrush x:Key="CardBg" Color="#D9181E2C" />
+                    <SolidColorBrush x:Key="CardBorder" Color="#26FFFFFF" />
+                    <SolidColorBrush x:Key="ChipBg" Color="#E61E2431" />
+                    <SolidColorBrush x:Key="ChipBorder" Color="#3AFFFFFF" />
                     <SolidColorBrush x:Key="ContentBg" Color="#B3181D28" />
                     <SolidColorBrush x:Key="ContentBorder" Color="#1AFFFFFF" />
                     <SolidColorBrush x:Key="LoginBg" Color="#B3131720" />

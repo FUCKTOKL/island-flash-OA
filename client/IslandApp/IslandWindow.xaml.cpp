@@ -1022,16 +1022,16 @@ namespace winrt::IslandApp::implementation
         Page2().Visibility(idx == 2 ? Visibility::Visible : Visibility::Collapsed);
         Page3().Visibility(idx == 3 ? Visibility::Visible : Visibility::Collapsed);
 
-        // 左轨图标页签：选中 = 鼠尾草药丸+白图标；未选 = 透明+主题默认色（不再随主题分支）
+        // 选中 = 翡翠药丸+白图标；未选 = ClearValue 回落 XAML 的磨砂芯片底（ChipBg 随主题）
         Media::SolidColorBrush sel(Windows::UI::Color{ 0xFF, 0x35, 0xA0, 0x78 });
         Media::SolidColorBrush wht(Windows::UI::Color{ 0xFF, 0xFF, 0xFF, 0xFF });
-        Media::SolidColorBrush unsel(Windows::UI::Color{ 0, 0, 0, 0 });
+        auto bgProp = winrt::Microsoft::UI::Xaml::Controls::Control::BackgroundProperty();
+        auto fgProp = winrt::Microsoft::UI::Xaml::Controls::Control::ForegroundProperty();
         for (int i = 0; i < 4; ++i)
         {
             auto btn = (i == 0) ? Tab0() : (i == 1) ? Tab1() : (i == 2) ? Tab2() : Tab3();
-            bool on = (i == idx);
-            btn.Background(on ? sel : unsel);
-            btn.Foreground(on ? wht : nullptr); // nullptr = 回退主题默认前景色
+            if (i == idx) { btn.Background(sel); btn.Foreground(wht); }
+            else { btn.ClearValue(bgProp); btn.ClearValue(fgProp); } // 清代码值→XAML 芯片底生效
         }
         }
         catch (winrt::hresult_error const& e)

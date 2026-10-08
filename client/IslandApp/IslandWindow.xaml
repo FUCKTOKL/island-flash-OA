@@ -61,22 +61,22 @@
             <Grid Grid.Column="0">
                 <StackPanel VerticalAlignment="Top" Spacing="10" Margin="0,6,0,0">
                     <Button x:Name="Tab0" Tag="0" Click="OnTabClick" ToolTipService.ToolTip="工作台"
-                            Background="Transparent" BorderThickness="0" CornerRadius="18"
+                            Background="{ThemeResource ChipBg}" BorderThickness="0" CornerRadius="18"
                             Width="38" Height="38" Padding="0">
                         <FontIcon Glyph="&#xE80F;" FontSize="16" FontFamily="Segoe Fluent Icons"/>
                     </Button>
                     <Button x:Name="Tab1" Tag="1" Click="OnTabClick" ToolTipService.ToolTip="文件"
-                            Background="Transparent" BorderThickness="0" CornerRadius="18"
+                            Background="{ThemeResource ChipBg}" BorderThickness="0" CornerRadius="18"
                             Width="38" Height="38" Padding="0">
                         <FontIcon Glyph="&#xE8B7;" FontSize="16" FontFamily="Segoe Fluent Icons"/>
                     </Button>
                     <Button x:Name="Tab2" Tag="2" Click="OnTabClick" ToolTipService.ToolTip="对话"
-                            Background="Transparent" BorderThickness="0" CornerRadius="18"
+                            Background="{ThemeResource ChipBg}" BorderThickness="0" CornerRadius="18"
                             Width="38" Height="38" Padding="0">
                         <FontIcon Glyph="&#xE8BD;" FontSize="16" FontFamily="Segoe Fluent Icons"/>
                     </Button>
                     <Button x:Name="Tab3" Tag="3" Click="OnTabClick" ToolTipService.ToolTip="我"
-                            Background="Transparent" BorderThickness="0" CornerRadius="18"
+                            Background="{ThemeResource ChipBg}" BorderThickness="0" CornerRadius="18"
                             Width="38" Height="38" Padding="0">
                         <FontIcon Glyph="&#xE77B;" FontSize="16" FontFamily="Segoe Fluent Icons"/>
                     </Button>
@@ -142,7 +142,8 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBox x:Name="TodoInput" PlaceholderText="添加一条待办…" FontSize="12"/>
                                 <Button Grid.Column="1" Content="添加" Click="OnAddTodoClick"
-                                        CornerRadius="12" Padding="16,7" FontSize="12"/>
+                                        CornerRadius="12" Padding="16,7" FontSize="12"
+                                        Background="{ThemeResource IslandAccentBrush}" Foreground="White"/>
                             </Grid>
                         </Grid>
                     </Border>
@@ -245,8 +246,9 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBox x:Name="MsgInput" PlaceholderText="发消息…（Enter 发送）" FontSize="12"
                                          KeyDown="OnMsgKey"/>
-                                <Button Grid.Column="1" Content="发送" Click="OnSendClick"
-                                        CornerRadius="12" Padding="16,7" FontSize="12"/>
+                                <Button Grid.Column="1" Content="发送" Click="OnSendClick" FontSize="12"
+                                        CornerRadius="12" Padding="16,7"
+                                        Background="{ThemeResource IslandAccentBrush}" Foreground="White"/>
                             </Grid>
                         </Grid>
                     </Border>
