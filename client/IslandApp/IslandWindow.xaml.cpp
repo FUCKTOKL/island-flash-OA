@@ -7,6 +7,9 @@
 // Win32 互操作：DWM 圆角 + 取 HWND
 #include <dwmapi.h>
 #include <microsoft.ui.xaml.window.h> // ::IWindowNative
+#include <ShObjIdl_core.h>            // ::IInitializeWithWindow（桌面 FilePicker 必须挂 HWND）
+#include <winrt/Windows.Storage.h>    // FileIO 落盘
+#include <winrt/Windows.Storage.Pickers.h> // 文件选择器
 #include <algorithm>
 #include <cmath>
 #pragma comment(lib, "dwmapi.lib")
@@ -321,6 +324,9 @@ namespace winrt::IslandApp::implementation
         // 工作台小组件：待办 + 天气
         LoadTodos();
         LoadWeather();
+
+        // 文件页：收藏集 + 群栏 + 两栏列表
+        LoadFilesPage();
     }
 
     void IslandWindow::OnWsEvent(winrt::hstring const& type)
@@ -465,6 +471,257 @@ namespace winrt::IslandApp::implementation
         co_await m_api.PostAsync(L"/todos", o.Stringify());
         TodoInput().Text(L"");
         LoadTodos();
+    }
+
+    // ============ 文件页（左右分栏，P0 平铺列表；docs/02 §四） ============
+
+    static winrt::hstring FmtSize(double n)
+    {
+        wchar_t b[32]{};
+        if (n >= 1048576.0) swprintf_s(b, L"%.1f MB", n / 1048576.0);
+        else if (n >= 1024.0) swprintf_s(b, L"%.0f KB", n / 1024.0);
+        else swprintf_s(b, L"%.0f B", n);
+        return b;
+    }
+
+    static bool IsImageName(std::wstring const& name)
+    {
+        auto p = name.rfind(L'.');
+        if (p == std::wstring::npos) return false;
+        auto e = name.substr(p + 1);
+        for (auto& c : e) c = towlower(c);
+        return e == L"png" || e == L"jpg" || e == L"jpeg" || e == L"gif"
+            || e == L"webp" || e == L"bmp";
+    }
+
+    // 文件行操作小按钮（透明底图标钮）
+    static Controls::Button IconBtn(wchar_t const* glyph, wchar_t const* tip)
+    {
+        Controls::Button b;
+        b.Background(Media::SolidColorBrush(Windows::UI::Color{ 0, 0, 0, 0 })); // ARGB 全 0 = 透明（Colors 类在此链路不可见，直接构造）
+        b.BorderThickness(Thickness(0));
+        b.Padding(Thickness(6, 3, 6, 3));
+        b.CornerRadius(CornerRadius(6)); // 代码侧要传结构体，double 是 XAML 转换器专属
+        Controls::ToolTipService::SetToolTip(b, box_value(tip));
+        Controls::FontIcon fi;
+        fi.Glyph(glyph);
+        fi.FontSize(13);
+        b.Content(fi);
+        return b;
+    }
+
+    // 空态/失败提示行
+    static void AddListHint(Controls::StackPanel const& panel, wchar_t const* text)
+    {
+        auto tb = Controls::TextBlock();
+        tb.Text(text);
+        tb.FontSize(12);
+        tb.Opacity(0.5);
+        panel.Children().Append(tb);
+    }
+
+    void IslandWindow::AddFileRow(Controls::StackPanel const& panel,
+                                   winrt::Windows::Data::Json::JsonObject const& o, bool mine)
+    {
+        int id = static_cast<int>(o.GetNamedNumber(L"id"));
+        auto name = o.GetNamedString(L"name");
+
+        auto row = Controls::Grid();
+        auto cd1 = Controls::ColumnDefinition();
+        cd1.Width(GridLength(1, GridUnitType::Star));
+        auto cd2 = Controls::ColumnDefinition();
+        cd2.Width(GridLength(1, GridUnitType::Auto));
+        row.ColumnDefinitions().Append(cd1);
+        row.ColumnDefinitions().Append(cd2);
+
+        auto info = Controls::StackPanel();
+        info.Orientation(Controls::Orientation::Horizontal);
+        info.Spacing(8);
+        auto ic = Controls::FontIcon();
+        ic.Glyph(IsImageName(std::wstring(name)) ? L"\uE8B9" : L"\uE7C3"); // 图片/文档图标
+        ic.FontSize(14);
+        ic.Opacity(0.7);
+        auto texts = Controls::StackPanel();
+        texts.Spacing(1);
+        auto tb = Controls::TextBlock();
+        tb.Text(name);
+        tb.FontSize(13);
+        tb.TextTrimming(TextTrimming::CharacterEllipsis);
+        tb.MaxWidth(260);
+        auto sz = Controls::TextBlock();
+        sz.Text(FmtSize(o.GetNamedNumber(L"size")));
+        sz.FontSize(11);
+        sz.Opacity(0.5);
+        texts.Children().Append(tb);
+        texts.Children().Append(sz);
+        info.Children().Append(ic);
+        info.Children().Append(texts);
+        Controls::Grid::SetColumn(info, 0);
+
+        auto ops = Controls::StackPanel();
+        ops.Orientation(Controls::Orientation::Horizontal);
+        ops.Spacing(2);
+        auto dl = IconBtn(L"\uE896", L"下载");
+        dl.Click([this, id, name](IInspectable const&, RoutedEventArgs const&) { DownloadFile(id, name); });
+        auto st = IconBtn(m_favIds.count(id) ? L"\uE735" : L"\uE734", L"收藏");
+        st.Click([this, id](IInspectable const&, RoutedEventArgs const&) { ToggleFavorite(id); });
+        ops.Children().Append(dl);
+        ops.Children().Append(st);
+        if (mine)
+        {
+            auto del = IconBtn(L"\uE74D", L"删除");
+            del.Click([this, id](IInspectable const&, RoutedEventArgs const&) { DeleteMyFile(id); });
+            ops.Children().Append(del);
+        }
+        Controls::Grid::SetColumn(ops, 1);
+
+        row.Children().Append(info);
+        row.Children().Append(ops);
+        panel.Children().Append(row);
+    }
+
+    winrt::fire_and_forget IslandWindow::LoadMyFiles()
+    {
+        auto lifetime = get_strong();
+        auto body = co_await m_api.GetAsync(L"/files?scope=personal");
+        MyFileList().Children().Clear();
+        if (body.empty()) { AddListHint(MyFileList(), L"（加载失败）"); co_return; }
+        int n = 0;
+        try
+        {
+            for (auto const& v : winrt::Windows::Data::Json::JsonArray::Parse(body))
+            {
+                AddFileRow(MyFileList(), v.GetObject(), true);
+                if (++n >= 50) break; // ponytail: 平铺 P0 只列前 50；分页 P2
+            }
+        }
+        catch (...) {}
+        if (n == 0) AddListHint(MyFileList(), L"（空 · 右上「上传」）");
+    }
+
+    winrt::fire_and_forget IslandWindow::LoadPublicFiles()
+    {
+        auto lifetime = get_strong();
+        std::wstring url = L"/files?scope=public";
+        if (m_selectedGroup) url += L"&group_id=" + std::to_wstring(m_selectedGroup);
+        auto body = co_await m_api.GetAsync(winrt::hstring(url));
+        PublicFileList().Children().Clear();
+        if (body.empty()) { AddListHint(PublicFileList(), L"（加载失败）"); co_return; }
+        int n = 0;
+        try
+        {
+            for (auto const& v : winrt::Windows::Data::Json::JsonArray::Parse(body))
+            {
+                AddFileRow(PublicFileList(), v.GetObject(), false);
+                if (++n >= 50) break;
+            }
+        }
+        catch (...) {}
+        if (n == 0) AddListHint(PublicFileList(), L"（空 · 全员公共区仅管理员可传）");
+    }
+
+    winrt::fire_and_forget IslandWindow::LoadFilesPage()
+    {
+        auto lifetime = get_strong();
+        // 已收藏集合（星标亮灭用）
+        auto fb = co_await m_api.GetAsync(L"/favorites");
+        m_favIds.clear();
+        try
+        {
+            for (auto const& v : winrt::Windows::Data::Json::JsonArray::Parse(fb))
+                m_favIds.insert(static_cast<int>(v.GetObject().GetNamedNumber(L"id")));
+        }
+        catch (...) {}
+
+        // 群选择栏：全员公共区 + 我所在的群（群 = group 会话，docs/01）
+        auto body = co_await m_api.GetAsync(L"/conversations");
+        GroupCombo().Items().Clear();
+        auto all = Controls::ComboBoxItem();
+        all.Content(box_value(L"全员公共区"));
+        all.Tag(box_value(0));
+        GroupCombo().Items().Append(all);
+        try
+        {
+            for (auto const& v : winrt::Windows::Data::Json::JsonArray::Parse(body))
+            {
+                auto o = v.GetObject();
+                if (o.GetNamedString(L"type") != L"group") continue;
+                auto it = Controls::ComboBoxItem();
+                it.Content(box_value(o.GetNamedString(L"name")));
+                it.Tag(box_value(static_cast<int>(o.GetNamedNumber(L"id"))));
+                GroupCombo().Items().Append(it);
+            }
+        }
+        catch (...) {}
+        GroupCombo().SelectedIndex(0); // 触发 OnGroupChanged → LoadPublicFiles
+        LoadMyFiles();
+    }
+
+    void IslandWindow::OnGroupChanged(IInspectable const&,
+                                      Controls::SelectionChangedEventArgs const&)
+    {
+        auto it = GroupCombo().SelectedItem().try_as<Controls::ComboBoxItem>();
+        if (!it || !it.Tag()) return; // Items 清空过程中会触发一次空选择
+        m_selectedGroup = unbox_value<int>(it.Tag());
+        LoadPublicFiles();
+    }
+
+    winrt::fire_and_forget IslandWindow::ToggleFavorite(int id)
+    {
+        auto lifetime = get_strong();
+        std::wstring p = L"/files/" + std::to_wstring(id) + L"/favorite";
+        if (m_favIds.count(id))
+        {
+            m_favIds.erase(id);
+            co_await m_api.DeleteAsync(winrt::hstring(p));
+        }
+        else
+        {
+            m_favIds.insert(id);
+            co_await m_api.PostAsync(winrt::hstring(p), L"{}");
+        }
+        LoadPublicFiles();
+        LoadMyFiles();
+    }
+
+    winrt::fire_and_forget IslandWindow::DeleteMyFile(int id)
+    {
+        auto lifetime = get_strong();
+        co_await m_api.DeleteAsync(winrt::hstring(L"/files/" + std::to_wstring(id)));
+        LoadMyFiles();
+    }
+
+    void IslandWindow::OnUploadClick(IInspectable const&, RoutedEventArgs const&) { UploadFile(); }
+
+    winrt::fire_and_forget IslandWindow::UploadFile()
+    {
+        auto lifetime = get_strong();
+        winrt::Windows::Storage::Pickers::FileOpenPicker picker;
+        picker.as<::IInitializeWithWindow>()->Initialize(m_hwnd); // 桌面必须挂 HWND，否则弹窗不出现
+        picker.FileTypeFilter().Append(L"*"); // IVector 是 Append 不是 Add
+        auto f = co_await picker.PickSingleFileAsync();
+        if (!f) co_return;
+        auto buf = co_await winrt::Windows::Storage::FileIO::ReadBufferAsync(f);
+        co_await m_api.UploadPersonalAsync(L"/files/upload", f.Name(), buf);
+        LoadMyFiles();
+    }
+
+    winrt::fire_and_forget IslandWindow::DownloadFile(int id, winrt::hstring name)
+    {
+        auto lifetime = get_strong();
+        winrt::Windows::Storage::Pickers::FileSavePicker sp;
+        sp.as<::IInitializeWithWindow>()->Initialize(m_hwnd);
+        sp.SuggestedFileName(name);
+        auto exts = winrt::single_threaded_vector<winrt::hstring>();
+        std::wstring n(name);
+        auto p = n.rfind(L'.');
+        exts.Append(p == std::wstring::npos ? winrt::hstring(L".bin") : winrt::hstring(n.substr(p)));
+        sp.FileTypeChoices().Insert(L"文件", exts);
+        auto f = co_await sp.PickSaveFileAsync();
+        if (!f) co_return;
+        auto buf = co_await m_api.DownloadAsync(
+            winrt::hstring(L"/files/" + std::to_wstring(id) + L"/download"));
+        if (buf) co_await winrt::Windows::Storage::FileIO::WriteBufferAsync(f, buf);
     }
 
     winrt::fire_and_forget IslandWindow::DoLogin()

@@ -3,6 +3,7 @@
 #include "IslandWindow.g.h"
 #include "Services/ApiClient.h"
 #include "Services/WsClient.h"
+#include <set>
 
 namespace winrt::IslandApp::implementation
 {
@@ -27,6 +28,10 @@ namespace winrt::IslandApp::implementation
                             Microsoft::UI::Xaml::RoutedEventArgs const&);
         void OnExitClick(Windows::Foundation::IInspectable const&,
                          Microsoft::UI::Xaml::RoutedEventArgs const&);
+        void OnUploadClick(Windows::Foundation::IInspectable const&,
+                           Microsoft::UI::Xaml::RoutedEventArgs const&);
+        void OnGroupChanged(Windows::Foundation::IInspectable const&,
+                            Microsoft::UI::Xaml::Controls::SelectionChangedEventArgs const&);
 
     private:
         // ---- 壳生命周期 ----
@@ -49,6 +54,17 @@ namespace winrt::IslandApp::implementation
         winrt::fire_and_forget ToggleTodo(int id);                // 勾选完成 → PUT done
         winrt::fire_and_forget AddTodo();                          // 快速添加（协程，XAML 事件只做 void 转发）
         void AddTodoRow(int id, winrt::hstring const& content);   // 待办行（无绑定，直建控件）
+
+        // ---- 文件页（左右分栏，P0 平铺列表） ----
+        winrt::fire_and_forget LoadFilesPage();   // 登录后一次：收藏集 + 群栏 + 两栏
+        winrt::fire_and_forget LoadMyFiles();
+        winrt::fire_and_forget LoadPublicFiles();
+        winrt::fire_and_forget UploadFile();      // FileOpenPicker → multipart POST
+        winrt::fire_and_forget DownloadFile(int id, winrt::hstring name); // GET 下载流 + 另存
+        winrt::fire_and_forget ToggleFavorite(int id);
+        winrt::fire_and_forget DeleteMyFile(int id);
+        void AddFileRow(Microsoft::UI::Xaml::Controls::StackPanel const& panel,
+                        Windows::Data::Json::JsonObject const& o, bool mine); // 文件行
 
         void OnRootLoaded(Windows::Foundation::IInspectable const&,
                           Microsoft::UI::Xaml::RoutedEventArgs const&); // Root 加载完再初始化壳
@@ -74,6 +90,8 @@ namespace winrt::IslandApp::implementation
         ifoa::ApiClient m_api;     // 后端 API 客户端（Windows.Web.Http）
         ifoa::WsClient m_ws;       // 后端推送（MessageWebSocket）
         int m_unread{ 0 };         // 合并未读（消息+通知，docs/02 §二）
+        std::set<int> m_favIds;    // 已收藏文件 id（星标亮灭）
+        int m_selectedGroup{ 0 };  // 文件页群栏：0=全员公共区，>0=群 id
         winrt::Microsoft::UI::Dispatching::DispatcherQueue m_dq{ nullptr }; // UI 调度器（WS 事件编回）
     };
 }

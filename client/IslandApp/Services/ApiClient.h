@@ -38,6 +38,19 @@ namespace ifoa
         winrt::Windows::Foundation::IAsyncOperation<winrt::hstring>
             GetUrlAsync(winrt::hstring const& url);
 
+        // DELETE：同上套路
+        winrt::Windows::Foundation::IAsyncOperation<winrt::hstring>
+            DeleteAsync(winrt::hstring const& path);
+
+        // 下载：返回字节缓冲（调用方 FileIO::WriteBufferAsync 落盘）；失败返回 null
+        winrt::Windows::Foundation::IAsyncOperation<winrt::Windows::Storage::Streams::IBuffer>
+            DownloadAsync(winrt::hstring const& path);
+
+        // multipart 上传（v1 固定 scope=personal；公共区上传入口 P2 再加）
+        winrt::Windows::Foundation::IAsyncOperation<winrt::hstring>
+            UploadPersonalAsync(winrt::hstring const& path, winrt::hstring const& fileName,
+                                winrt::Windows::Storage::Streams::IBuffer const& data);
+
         // ---- 持久化（注册表 HKCU\Software\IF-OA\Island）----
         // token 用 DPAPI 加密：PasswordVault 需要包标识，解包应用用不了
         static void SaveToken(winrt::hstring const& token);
@@ -107,6 +120,61 @@ namespace ifoa
             m_lastError = L"HTTP " + std::to_wstring(static_cast<int>(resp.StatusCode()));
         }
         catch (...) { m_lastError = L"无法访问外部服务"; }
+        co_return L"";
+    }
+
+    inline winrt::Windows::Foundation::IAsyncOperation<winrt::hstring>
+        ApiClient::DeleteAsync(winrt::hstring const& path)
+    {
+        using namespace winrt::Windows::Web::Http;
+        m_lastError = L"";
+        try
+        {
+            if (!m_http) m_http = HttpClient();
+            auto resp = co_await m_http.DeleteAsync(winrt::Windows::Foundation::Uri(m_base + path));
+            if (resp.IsSuccessStatusCode()) co_return co_await resp.Content().ReadAsStringAsync();
+            m_lastError = L"服务器错误 (" + std::to_wstring(static_cast<int>(resp.StatusCode())) + L")";
+        }
+        catch (...) { m_lastError = L"请求失败"; }
+        co_return L"";
+    }
+
+    inline winrt::Windows::Foundation::IAsyncOperation<winrt::Windows::Storage::Streams::IBuffer>
+        ApiClient::DownloadAsync(winrt::hstring const& path)
+    {
+        using namespace winrt::Windows::Web::Http;
+        m_lastError = L"";
+        try
+        {
+            if (!m_http) m_http = HttpClient();
+            auto resp = co_await m_http.GetAsync(winrt::Windows::Foundation::Uri(m_base + path));
+            if (resp.IsSuccessStatusCode()) co_return co_await resp.Content().ReadAsBufferAsync();
+            m_lastError = L"下载失败 (" + std::to_wstring(static_cast<int>(resp.StatusCode())) + L")";
+        }
+        catch (...) { m_lastError = L"下载失败"; }
+        co_return nullptr;
+    }
+
+    inline winrt::Windows::Foundation::IAsyncOperation<winrt::hstring>
+        ApiClient::UploadPersonalAsync(winrt::hstring const& path, winrt::hstring const& fileName,
+                                       winrt::Windows::Storage::Streams::IBuffer const& data)
+    {
+        using namespace winrt::Windows::Web::Http;
+        m_lastError = L"";
+        try
+        {
+            if (!m_http) m_http = HttpClient();
+            HttpBufferContent fc(data);
+            fc.Headers().Append(L"Content-Type", L"application/octet-stream");
+            HttpMultipartFormDataContent form; // C++/WinRT 保留 Http 前缀（C# 才叫 MultipartFormDataContent）
+            form.Add(fc, L"file", fileName); // 带文件名的表单字段
+            HttpStringContent sc(L"personal", winrt::Windows::Storage::Streams::UnicodeEncoding::Utf8);
+            form.Add(sc, L"scope");
+            auto resp = co_await m_http.PostAsync(winrt::Windows::Foundation::Uri(m_base + path), form);
+            if (resp.IsSuccessStatusCode()) co_return co_await resp.Content().ReadAsStringAsync();
+            m_lastError = L"上传失败 (" + std::to_wstring(static_cast<int>(resp.StatusCode())) + L")";
+        }
+        catch (...) { m_lastError = L"上传失败"; }
         co_return L"";
     }
 
