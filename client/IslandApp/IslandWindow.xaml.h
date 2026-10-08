@@ -28,6 +28,8 @@ namespace winrt::IslandApp::implementation
                             Microsoft::UI::Xaml::RoutedEventArgs const&);
         void OnExitClick(Windows::Foundation::IInspectable const&,
                          Microsoft::UI::Xaml::RoutedEventArgs const&);
+        void OnThemeToggleClick(Windows::Foundation::IInspectable const&,
+                                Microsoft::UI::Xaml::RoutedEventArgs const&);
         void OnUploadClick(Windows::Foundation::IInspectable const&,
                            Microsoft::UI::Xaml::RoutedEventArgs const&);
         void OnGroupChanged(Windows::Foundation::IInspectable const&,
@@ -49,6 +51,7 @@ namespace winrt::IslandApp::implementation
         winrt::fire_and_forget AfterLogin(winrt::hstring token); // 拉个人信息 + WS 连接
         void OnWsEvent(winrt::hstring const& type);              // WS 推送分发（UI 线程）
         void UpdateBadge();                                       // 胶囊未读角标
+        void ApplyTheme();                                        // 黑白主题切换（含注册表记忆）
         winrt::fire_and_forget LoadTodos();                       // 工作台：待办岛
         winrt::fire_and_forget LoadWeather();                     // 工作台：天气岛（Open-Meteo 直连）
         winrt::fire_and_forget ToggleTodo(int id);                // 勾选完成 → PUT done
@@ -92,6 +95,8 @@ namespace winrt::IslandApp::implementation
         int m_unread{ 0 };         // 合并未读（消息+通知，docs/02 §二）
         std::set<int> m_favIds;    // 已收藏文件 id（星标亮灭）
         int m_selectedGroup{ 0 };  // 文件页群栏：0=全员公共区，>0=群 id
+        bool m_dark{ false };      // 主题：false=白岛，true=黑岛（注册表 dark 字节记忆）
+        int m_curTab{ 0 };         // 当前页签（切主题时刷新选中药丸用）
         winrt::Microsoft::UI::Dispatching::DispatcherQueue m_dq{ nullptr }; // UI 调度器（WS 事件编回）
     };
 }

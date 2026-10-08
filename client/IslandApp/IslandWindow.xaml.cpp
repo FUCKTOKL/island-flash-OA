@@ -73,6 +73,12 @@ namespace winrt::IslandApp::implementation
         InitializeComponent();
         m_dq = this->DispatcherQueue(); // WS 事件编回 UI 线程用
 
+        // 主题（注册表记忆，1 字节）：'1'=黑岛；令牌字典见 App.xaml
+        std::vector<BYTE> dkb;
+        m_dark = ifoa::RegReadBinary(L"dark", dkb) && !dkb.empty() && dkb[0] == '1';
+        Root().RequestedTheme(m_dark ? ElementTheme::Dark : ElementTheme::Light);
+        if (m_dark) ThemeIcon().Glyph(L"\uE708"); // 月；默认日(浅色)
+
         // Esc 收起（Accelerator 挂根元素，无需焦点管理；docs/02 状态机）
         Input::KeyboardAccelerator esc;
         esc.Key(Windows::System::VirtualKey::Escape);
@@ -300,6 +306,22 @@ namespace winrt::IslandApp::implementation
     {
         int idx = _wtoi(sender.as<FrameworkElement>().Tag().as<hstring>().c_str()); // FrameworkElement 在 Xaml 命名空间
         SelectTab(idx);
+    }
+
+    void IslandWindow::OnThemeToggleClick(IInspectable const&, RoutedEventArgs const&)
+    {
+        m_dark = !m_dark;
+        ApplyTheme();
+    }
+
+    void IslandWindow::ApplyTheme()
+    {
+        // 一行翻转主题：App.xaml 令牌字典 + 默认控件铬色全部自动跟随
+        Root().RequestedTheme(m_dark ? ElementTheme::Dark : ElementTheme::Light);
+        BYTE b = m_dark ? '1' : '0';
+        ifoa::RegWriteBinary(L"dark", &b, 1); // 下次启动生效
+        ThemeIcon().Glyph(m_dark ? L"\uE708" : L"\uE706"); // 月/日
+        SelectTab(m_curTab); // 选中页签药丸颜色随主题刷新
     }
 
     void IslandWindow::OnExitClick(IInspectable const&, RoutedEventArgs const&)
@@ -780,6 +802,7 @@ namespace winrt::IslandApp::implementation
     // P1 升级路径 = Controls/SegmentedTabs（选中指示条滑动 + 内容横移淡入，docs/02 §三）
     void IslandWindow::SelectTab(int idx)
     {
+        m_curTab = idx;
         try
         {
         Page0().Visibility(idx == 0 ? Visibility::Visible : Visibility::Collapsed);
@@ -792,8 +815,10 @@ namespace winrt::IslandApp::implementation
         Tab2().FontWeight(idx == 2 ? winrt::Microsoft::UI::Text::FontWeights::Bold() : winrt::Microsoft::UI::Text::FontWeights::Normal());
         Tab3().FontWeight(idx == 3 ? winrt::Microsoft::UI::Text::FontWeights::Bold() : winrt::Microsoft::UI::Text::FontWeights::Normal());
 
-        // 选中页签 = 薄荷微光药丸（白岛版：浅绿薄染色，黑字清晰）
-        auto sel = Media::SolidColorBrush(Windows::UI::Color{ 0xFF, 0xD9, 0xEE, 0xE3 });
+        // 选中页签药丸：随主题取色（黑岛青绿深/白岛薄荷薄染）
+        auto sel = Media::SolidColorBrush(m_dark
+            ? Windows::UI::Color{ 0xFF, 0x2A, 0x3D, 0x35 }
+            : Windows::UI::Color{ 0xFF, 0xD9, 0xEE, 0xE3 });
         auto unsel = Media::SolidColorBrush(Windows::UI::Color{ 0, 0, 0, 0 });
         Tab0().Background(idx == 0 ? sel : unsel);
         Tab1().Background(idx == 1 ? sel : unsel);
