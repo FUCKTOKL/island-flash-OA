@@ -837,7 +837,8 @@ namespace winrt::IslandApp::implementation
         auto t1 = Controls::TextBlock(); t1.Text(name); t1.FontSize(13);
         t1.TextTrimming(TextTrimming::CharacterEllipsis); t1.MaxWidth(120);
         auto t2 = Controls::TextBlock();
-        if (o.HasKey(L"last_message") && !o.GetNamedValue(L"last_message").IsNull())
+        if (o.HasKey(L"last_message")
+            && o.GetNamedValue(L"last_message").ValueType() == JsonValueType::Object)
             t2.Text(MsgSummary(o.GetNamedObject(L"last_message")));
         else
             t2.Text(L"（新会话）");
@@ -926,12 +927,12 @@ namespace winrt::IslandApp::implementation
         bubble.Padding(Thickness(10, 5, 10, 5));
         if (mine)
         {
-            auto accent = Resources().Lookup(box_value(L"IslandAccentBrush")).as<Media::SolidColorBrush>();
+            auto accent = Root().Resources().Lookup(box_value(L"IslandAccentBrush")).as<Media::SolidColorBrush>();
             bubble.Background(accent);
         }
         else
         {
-            bubble.Background(Resources().Lookup(box_value(L"ChipBg")).as<Media::SolidColorBrush>());
+            bubble.Background(Root().Resources().Lookup(box_value(L"ChipBg")).as<Media::SolidColorBrush>());
         }
         auto txt = Controls::TextBlock();
         txt.Text(MsgSummary(m));
