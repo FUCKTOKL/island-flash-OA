@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>IF-OA · 岛四 · 破折刃</title>
+<style>
+/* 破折刃 DASH BLADE：反仪表盘——岛只长成一条 110px 细刃，模块=刃上分段，
+   悬停分段向下抽出浮片详情（渐进披露）。语言基底=单元矩阵 v3.2 冷调毛玻璃。
+   灵感：符号串的极短破折与尖锐收束 */
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:linear-gradient(160deg,#E7ECF2,#EDF1F6,#E3E9F0);color:#2E3440;
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;overflow:hidden;
+  font:15px/1.6 "Segoe UI Variable Text","Segoe UI",sans-serif}
+.orb{position:fixed;border-radius:50%;pointer-events:none;filter:blur(4px)}
+.o1{width:560px;height:560px;left:-160px;top:-180px;background:radial-gradient(circle at 40% 40%,rgba(79,163,165,.40),transparent 65%)}
+.o2{width:640px;height:640px;right:-220px;bottom:-280px;background:radial-gradient(circle at 60% 40%,rgba(127,168,217,.30),transparent 65%)}
+.desktop{width:100%;padding:34px 0 60px;position:relative;z-index:1}
+.capsule{width:216px;height:36px;margin:0 auto 14px;background:rgba(246,248,251,.6);
+  border:1px solid rgba(222,227,233,.8);border-radius:18px;backdrop-filter:blur(20px) saturate(1.3);
+  display:flex;align-items:center;justify-content:space-between;padding:0 16px;
+  font-size:10px;letter-spacing:3px;color:#7E8A99;cursor:pointer}
+.capsule i{font-style:normal;width:8px;height:8px;background:#4FA3A5;border-radius:50%;box-shadow:0 0 8px rgba(79,163,165,.8)}
+.capsule .b{font-size:9px;color:#FFF;background:#C74E5C;padding:0 6px;border-radius:8px}
+/* 刃：横向长出的细条（scaleX 生长） */
+.blade{width:1280px;height:104px;background:rgba(246,248,251,.7);border:1px solid rgba(222,227,233,.9);
+  border-radius:14px;backdrop-filter:blur(26px) saturate(1.25);position:relative;
+  transform-origin:center;animation:extend .7s cubic-bezier(.32,.72,0,1);
+  box-shadow:0 10px 34px rgba(46,52,64,.12),inset 0 1px 0 rgba(255,255,255,.7)}
+@keyframes extend{from{transform:scaleX(.168);opacity:0}}
+/* 刃上分段（等宽 dash） */
+.segs{display:grid;grid-template-columns:1.3fr 1fr 1.5fr 1.6fr 1fr;height:100%}
+.seg{position:relative;border-right:1px solid rgba(222,227,233,.8);padding:12px 16px;overflow:visible;
+  transition:background .25s cubic-bezier(.32,.72,0,1)}
+.seg:last-child{border-right:0}
+.seg:hover{background:rgba(255,255,255,.35)}
+.lab{font-family:"Cascadia Mono",Consolas,monospace;font-size:9px;letter-spacing:2px;color:#7E8A99;
+  display:flex;justify-content:space-between;white-space:nowrap}
+.lab b{color:#2E3440;font-weight:700}
+/* 段内主数据（单行克制） */
+.main{margin-top:6px;display:flex;align-items:baseline;gap:8px;white-space:nowrap}
+.main .n{font-family:"Segoe UI Variable Display",sans-serif;font-size:30px;font-weight:650;line-height:1;letter-spacing:-1px}
+.main .n em{font-style:normal;font-size:13px;color:#7E8A99}
+.main .t{font-size:12px;color:#2E3440}
+.main .t small{display:block;font-size:10px;color:#7E8A99}
+/* 抽出浮片：hover 才出现（渐进披露核心） */
+.pop{position:absolute;top:calc(100% + 10px);left:0;width:300px;max-width:34vw;
+  background:rgba(246,248,251,.78);border:1px solid rgba(222,227,233,.95);border-radius:12px;
+  backdrop-filter:blur(22px) saturate(1.3);padding:12px 14px;
+  box-shadow:0 16px 40px rgba(46,52,64,.16),inset 0 1px 0 rgba(255,255,255,.7);
+  opacity:0;transform:translateY(-6px);pointer-events:none;z-index:9;
+  transition:opacity .28s cubic-bezier(.32,.72,0,1),transform .28s cubic-bezier(.32,.72,0,1)}
+.seg:hover .pop{opacity:1;transform:translateY(0);pointer-events:auto}
+/* 浮片内小行 */
+.prow{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(227,232,240,.7);font-size:12px}
+.prow:last-child{border-bottom:0}
+.prow .sq{width:11px;height:11px;border:2px solid #A8B2BE;border-radius:3px;flex:none}
+.prow.ok .sq{background:#4FA3A5;border-color:#4FA3A5}
+.prow.ok span{color:#A8B2BE;text-decoration:line-through}
+.prow .u{width:6px;height:6px;background:#E8A0AC;border-radius:50%;flex:none;animation:pulse 1.8s infinite}
+@keyframes pulse{50%{opacity:.3}}
+.prow .w{margin-left:auto;font-family:"Cascadia Mono",Consolas,monospace;font-size:9px;color:#7E8A99}
+.prow .bb{background:rgba(238,242,247,.85);padding:2px 8px;border-radius:8px 8px 8px 2px;border:1px solid rgba(222,227,233,.7);font-size:11px}
+.padd{display:flex;margin-top:8px;border:1px solid rgba(216,222,230,.95);border-radius:8px;overflow:hidden}
+.padd input{flex:1;border:0;background:rgba(255,255,255,.6);padding:5px 9px;font:inherit;outline:none;font-size:11px}
+.padd button{border:0;border-left:1px solid rgba(216,222,230,.95);background:rgba(240,244,249,.6);font:inherit;font-size:11px;font-weight:650;padding:0 10px;cursor:pointer}
+.padd button:hover{background:#4FA3A5;color:#FFF}
+/* 审批段：数字覆盆子 */
+.apprN{color:#C74E5C}
+/* 尖角装饰：刃两端 */
+.blade::before,.blade::after{content:"";position:absolute;top:50%;width:8px;height:2px;background:#4FA3A5;transform:translateY(-50%)}
+.blade::before{left:-14px}.blade::after{right:-14px}
+.hint{font-family:"Cascadia Mono",Consolas,monospace;font-size:9px;letter-spacing:2px;color:#A0AAB7;margin-top:14px}
+.clock{font-family:"Cascadia Mono",Consolas,monospace}
+</style>
+</head>
+<body>
+<i class="orb o1"></i><i class="orb o2"></i>
+<div class="desktop">
+  <div class="capsule" onclick="replay()"><span>IF—OA / 破折刃</span><span><i></i> <span class="b">3</span></span></div>
+  <div class="blade" id="blade">
+    <div class="segs">
+      <div class="seg">
+        <div class="lab"><b>天气</b><span>SEG-1</span></div>
+        <div class="main"><span class="n">14<em>°C</em></span><span class="t">多云转晴<small>北京 · 13—21°</small></span></div>
+        <div class="pop"><div class="lab" style="margin-bottom:6px"><b>三日预报</b><span>=</span></div>
+          <div class="prow"><span>明日</span><span style="margin-left:auto">15—23° · 晴</span></div>
+          <div class="prow"><span>周六</span><span style="margin-left:auto">14—22° · 多云</span></div>
+          <div class="prow"><span>周日</span><span style="margin-left:auto">12—19° · 小雨</span></div>
+        </div>
+      </div>
+      <div class="seg">
+        <div class="lab"><b>待办</b><span>SEG-2</span></div>
+        <div class="main"><span class="n">4<small style="font-size:11px;color:#7E8A99"> 项</small></span><span class="t">1 已结<small>今日 3 项待办</small></span></div>
+        <div class="pop"><div class="lab" style="margin-bottom:4px"><b>任务</b><span>TODO</span></div>
+          <div class="prow ok"><i class="sq"></i><span>季度预算表交财务</span></div>
+          <div class="prow"><i class="sq"></i><span>回复设计部配色提案</span></div>
+          <div class="prow"><i class="sq"></i><span>约王工评审接口契约</span></div>
+          <div class="padd"><input placeholder="新任务…"><button>置入</button></div>
+        </div>
+      </div>
+      <div class="seg">
+        <div class="lab"><b>审批</b><span>SEG-3 · 1 加急</span></div>
+        <div class="main"><span class="n apprN">3</span><span class="t">待我审批<small>设备采购 ¥8,400 急</small></span></div>
+        <div class="pop"><div class="lab" style="margin-bottom:4px"><b>待审</b><span>PEND</span></div>
+          <div class="prow"><i class="u"></i>设备采购 · 报销<span class="w">08:12 急</span></div>
+          <div class="prow"><i class="u"></i>调休 · 小刘<span class="w">昨</span></div>
+          <div class="prow"><i class="u" style="background:#4FA3A5;animation:none"></i>用印 · 已会签<span class="w">昨</span></div>
+        </div>
+      </div>
+      <div class="seg">
+        <div class="lab"><b>对话</b><span>SEG-4 · 未读 2</span></div>
+        <div class="main"><span class="n">2</span><span class="t">韩梅梅<small>「报销单已批，记得看」</small></span></div>
+        <div class="pop"><div class="lab" style="margin-bottom:4px"><b>往来</b><span>MSG</span></div>
+          <div class="prow"><span class="bb">李雷：新版岛的颜色定了吗？</span></div>
+          <div class="prow"><span class="bb">我：定了，下午发你</span></div>
+          <div class="prow"><span class="bb">韩梅梅：报销单已批 ●2</span></div>
+        </div>
+      </div>
+      <div class="seg">
+        <div class="lab"><b>文件</b><span>SEG-5</span></div>
+        <div class="main"><span class="n">12<small style="font-size:11px;color:#7E8A99"> 份</small></span><span class="t">Q2 预算表<small>2 分钟前更新</small></span></div>
+        <div class="pop"><div class="lab" style="margin-bottom:4px"><b>最近</b><span>RECENT</span></div>
+          <div class="prow"><span>Q2 预算表.xlsx</span><span class="w">新</span></div>
+          <div class="prow"><span>设计参考图.zip</span><span class="w">昨</span></div>
+          <div class="prow"><span>接口契约 v3.pdf</span><span class="w">公共区</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="hint">DASH BLADE · 悬停分段抽出详情 · 点胶囊重播出刃 &nbsp;<span class="clock" id="clock">--:--</span></div>
+</div>
+<script>
+function replay(){const b=document.getElementById("blade");b.style.animation="none";b.offsetHeight;b.style.animation="";}
+const wd=["日","一","二","三","四","五","六"],t=new Date();
+document.getElementById("clock").textContent=`${String(t.getHours()).padStart(2,"0")}:${String(t.getMinutes()).padStart(2,"0")} 星期${wd[t.getDay()]}`;
+</script>
+</body>
+</html>
