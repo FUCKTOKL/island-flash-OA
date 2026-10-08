@@ -20,6 +20,7 @@
                     <GradientStop Color="#F21D2127" Offset="1"/>
                 </LinearGradientBrush>
             </Border.Background>
+            <Grid>
 
         <!-- ================= 胶囊态（216×36） ================= -->
         <!-- 胶囊态：极简把手（拍板：收起只留“-”）；未读时叠红点 -->
@@ -244,6 +245,7 @@
                             Margin="0,6,0,0"/>
                 </StackPanel>
             </Border>
+        </Grid>
         </Grid>
         </Border>
     </Grid>
