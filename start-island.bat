@@ -1,9 +1,9 @@
 @echo off
+chcp 65001 >nul
 rem ================= IF-OA 一键启动 =================
 rem 用途：双击即启动「后端(FastAPI) + 灵动岛客户端(WinUI3)」
-rem 依赖：backend\venv 已装依赖（见 backend\README.md）；客户端需先用
-rem       VS2022 打开 client\Island.sln 生成一次（x64 Release/Debug 均可）
-chcp 65001 >nul
+rem 依赖：backend\venv 已装依赖；客户端需先用 VS2022 生成一次（x64）
+rem 编码规约：UTF-8 无 BOM + CRLF + chcp 在任何中文之前（缺一不可）
 title IF-OA 一键启动
 
 rem ---------- 后端 ----------
