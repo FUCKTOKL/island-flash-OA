@@ -161,10 +161,9 @@ namespace winrt::IslandApp::implementation
         COLORREF noBorder = 0xFFFFFFFE;
         DwmSetWindowAttribute(m_hwnd, 34, &noBorder, sizeof(noBorder));
 
-        // 整窗毛玻璃（Apple 风）；Win10/关闭透明效果时自动回退不透明
-        // ponytail: 每个组件再用半透明 Border 叠出“岛”层次
-        // SystemBackdrop 已移除：像素取证发现亚克力未被上层压暗（奶灰层=用户看到的"白边"）；
-        // 刘海语言本就是纯黑实体，改用 IslandFrame 全不透明渐变直出
+        // 整窗亚克力毛玻璃（用户拍板：半透明模糊，像素取证当年的奶灰层已证实是 NC 边框带而非亚克力本身）；
+        // 自动跟随黑白主题取明暗 tint，Win10/关闭透明效果时自动回退；上层半透明令牌叠出岛层次
+        Root().SystemBackdrop(winrt::Microsoft::UI::Xaml::Media::DesktopAcrylicBackdrop());
 
         // 初始位置：优先用持久化值，否则主屏顶部居中；始终钳制在工作区内
         auto wa = WorkArea();
@@ -1024,7 +1023,7 @@ namespace winrt::IslandApp::implementation
         Page3().Visibility(idx == 3 ? Visibility::Visible : Visibility::Collapsed);
 
         // 左轨图标页签：选中 = 鼠尾草药丸+白图标；未选 = 透明+主题默认色（不再随主题分支）
-        Media::SolidColorBrush sel(Windows::UI::Color{ 0xFF, 0x5C, 0x7A, 0x38 });
+        Media::SolidColorBrush sel(Windows::UI::Color{ 0xFF, 0x35, 0xA0, 0x78 });
         Media::SolidColorBrush wht(Windows::UI::Color{ 0xFF, 0xFF, 0xFF, 0xFF });
         Media::SolidColorBrush unsel(Windows::UI::Color{ 0, 0, 0, 0 });
         for (int i = 0; i < 4; ++i)
