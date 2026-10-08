@@ -44,7 +44,7 @@ namespace winrt::IslandApp::implementation
     // XAML 侧 IslandFrame 同形 CornerRadius 叠渐变层，硬边视觉上不可见
     static void ApplyNotchRgn(HWND hwnd, int32_t w, int32_t h)
     {
-        int r = 22; // 底部圆角半径（物理像素）
+        int r = 24; // 底部圆角半径（物理像素）；须大于 XAML 侧 20，深色层溢出裁剪边防漏白
         HRGN rgn = CreateRoundRectRgn(0, 0, w + 1, h + 1, r, r);
         HRGN top = CreateRectRgn(0, 0, w + 1, r);
         CombineRgn(rgn, rgn, top, RGN_OR); // 顶部补成直角
