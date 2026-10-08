@@ -153,6 +153,13 @@ namespace winrt::IslandApp::implementation
         // WS_EX_TOOLWINDOW：不出现在任务栏
         SetWindowLongPtrW(m_hwnd, GWL_EXSTYLE,
             GetWindowLongPtrW(m_hwnd, GWL_EXSTYLE) | WS_EX_TOOLWINDOW);
+        // 白边框真凶：清 WS_THICKFRAME/DLGFRAME/SYSMENU/MINIMIZEBOX——DWM 由此不再在客户区
+        // 边缘画 NC 边框带（实测 4px 纯白）；DWMWA_BORDER_COLOR 在此窗型返回 E_INVALIDARG 靠不住
+        SetWindowLongPtrW(m_hwnd, GWL_STYLE,
+            GetWindowLongPtrW(m_hwnd, GWL_STYLE)
+            & ~(WS_THICKFRAME | WS_DLGFRAME | WS_SYSMENU | WS_MINIMIZEBOX));
+        SetWindowPos(m_hwnd, nullptr, 0, 0, 0, 0,
+            SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
 
         // DWM 圆角（Win10 自动忽略）。
         // ponytail: WASDK 无真透明窗口，18px 全胶囊圆角做不了；DWM ROUND(≈8px) 先近似，
