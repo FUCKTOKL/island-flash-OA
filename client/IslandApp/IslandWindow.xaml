@@ -40,7 +40,7 @@
         <Grid x:Name="CapsulePanel" Height="36">
             <Border Width="36" Height="4" CornerRadius="2" Background="{ThemeResource DashBrush}"
                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            <Border x:Name="Badge" CornerRadius="8" Background="#E5484D"
+            <Border x:Name="Badge" CornerRadius="8" Background="{ThemeResource IslandDangerBrush}"
                     MinWidth="16" Height="16" Margin="14,2,0,0" VerticalAlignment="Top"
                     HorizontalAlignment="Center" Visibility="Collapsed">
                 <TextBlock x:Name="BadgeText" Text="0" FontSize="10" Foreground="White"
@@ -116,15 +116,21 @@
                 <Grid x:Name="ContentHost">
 
                 <!-- P1 工作台：待办岛 + 天气岛（后续组件化进 Widgets/） -->
-                <Grid x:Name="Page0">
+                <!-- Page0 bento（v3.2 定稿）：待办 span2 / 天气 / 审批 hero 横卡（拍板：审批入口在工作台卡片） -->
+                <Grid x:Name="Page0" ColumnSpacing="10" RowSpacing="10">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="112"/>
+                    </Grid.RowDefinitions>
 
-                    <!-- 待办岛：标题左上 / 列表中 / 快速添加下沉底部（参考图底部操作带基因） -->
-                    <Border Grid.Column="0" CornerRadius="14" Background="{ThemeResource CardBg}"
-                            BorderBrush="{ThemeResource CardBorder}" BorderThickness="1" Padding="14" Margin="0,0,8,0">
+                    <!-- 待办浮片：标题左上 / 列表中 / 快速添加沉底 -->
+                    <Border Grid.Column="0" Grid.ColumnSpan="2" CornerRadius="12" Background="{ThemeResource CardBg}"
+                            BorderBrush="{ThemeResource CardBorder}" BorderThickness="1" Padding="14">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
@@ -148,16 +154,40 @@
                         </Grid>
                     </Border>
 
-                    <!-- 天气 hero 大卡：大字号温度+状态纵居中（图1 中央浮起 hero 面板基因） -->
-                    <Border Grid.Column="1" CornerRadius="14" Background="{ThemeResource CardBg}"
-                            BorderBrush="{ThemeResource CardBorder}" BorderThickness="1" Padding="18" Margin="8,0,0,0">
+                    <!-- 天气浮片：大字号温度（墨色非强调）纵居中 -->
+                    <Border Grid.Column="2" CornerRadius="12" Background="{ThemeResource CardBg}"
+                            BorderBrush="{ThemeResource CardBorder}" BorderThickness="1" Padding="18">
                         <StackPanel VerticalAlignment="Center" Spacing="4">
                             <TextBlock Text="天气 · 北京" FontSize="13" Opacity="0.6" FontFamily="Segoe UI Variable Display" CharacterSpacing="60" HorizontalAlignment="Center"/>
                             <TextBlock x:Name="WeatherNow" Text="—" FontSize="44" FontWeight="SemiBold"
-                                       Foreground="{ThemeResource IslandAccentBrush}"
                                        FontFamily="Segoe UI Variable Display" HorizontalAlignment="Center" Margin="0,6,0,2"/>
                             <TextBlock x:Name="WeatherDetail" Text="加载中…" Opacity="0.7" FontSize="13" HorizontalAlignment="Center"/>
                         </StackPanel>
+                    </Border>
+
+                    <!-- 审批 hero 横卡：烟熏石板对比锚点 + 冷粉大数字（数据接入待审批流里程碑） -->
+                    <Border Grid.Row="1" Grid.ColumnSpan="3" CornerRadius="12"
+                            Background="{ThemeResource ApprBg}" BorderBrush="{ThemeResource ApprBorder}" BorderThickness="1"
+                            Padding="16,10">
+                        <Grid VerticalAlignment="Center">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Name="ApprCount" Text="0" FontSize="40" FontWeight="SemiBold"
+                                       Foreground="{ThemeResource ApprNum}" FontFamily="Segoe UI Variable Display"
+                                       VerticalAlignment="Center"/>
+                            <StackPanel Grid.Column="1" Margin="14,2,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="待我审批" FontSize="14" FontWeight="SemiBold" Foreground="{ThemeResource ApprFg}"/>
+                                <TextBlock x:Name="ApprSub" Text="暂无待审批 — 一切就位" FontSize="11" Opacity="0.65" Foreground="{ThemeResource ApprFg}"/>
+                            </StackPanel>
+                            <Border Grid.Column="3" CornerRadius="10" BorderBrush="{ThemeResource ApprFg}"
+                                    BorderThickness="1" Padding="14,6" VerticalAlignment="Center">
+                                <TextBlock Text="进入审批 ›" FontSize="11" Foreground="{ThemeResource ApprFg}"/>
+                            </Border>
+                        </Grid>
                     </Border>
                 </Grid>
 

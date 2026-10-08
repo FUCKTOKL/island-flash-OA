@@ -812,7 +812,7 @@ namespace winrt::IslandApp::implementation
         // 头像圈：名字首字
         auto av = Controls::Border();
         av.Width(32); av.Height(32); av.CornerRadius(CornerRadius(16));
-        av.Background(Media::SolidColorBrush(Windows::UI::Color{ 0xFF, 0x35, 0xA0, 0x78 }));
+        av.Background(Media::SolidColorBrush(Windows::UI::Color{ 0xFF, 0x4F, 0xA3, 0xA5 }));
         auto avt = Controls::TextBlock();
         avt.Text(name.empty() ? winrt::hstring(L"?") : winrt::hstring(std::wstring(1, name.c_str()[0])));
         avt.FontSize(13); avt.FontWeight(winrt::Microsoft::UI::Text::FontWeights::Bold());
@@ -1022,8 +1022,8 @@ namespace winrt::IslandApp::implementation
         Page2().Visibility(idx == 2 ? Visibility::Visible : Visibility::Collapsed);
         Page3().Visibility(idx == 3 ? Visibility::Visible : Visibility::Collapsed);
 
-        // 选中 = 翡翠药丸+白图标；未选 = ClearValue 回落 XAML 的磨砂芯片底（ChipBg 随主题）
-        Media::SolidColorBrush sel(Windows::UI::Color{ 0xFF, 0x35, 0xA0, 0x78 });
+        // 选中 = 青蓝药丸+白图标；未选 = ClearValue 回落 XAML 的磨砂芯片底（ChipBg 随主题）
+        Media::SolidColorBrush sel(Windows::UI::Color{ 0xFF, 0x4F, 0xA3, 0xA5 });
         Media::SolidColorBrush wht(Windows::UI::Color{ 0xFF, 0xFF, 0xFF, 0xFF });
         auto bgProp = winrt::Microsoft::UI::Xaml::Controls::Control::BackgroundProperty();
         auto fgProp = winrt::Microsoft::UI::Xaml::Controls::Control::ForegroundProperty();
