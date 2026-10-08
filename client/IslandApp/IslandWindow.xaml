@@ -21,6 +21,7 @@
                     <GradientStop Color="{ThemeResource IslandBottomColor}" Offset="1"/>
                 </LinearGradientBrush>
             </Border.Background>
+            <Grid>
 
             <!-- 翡翠光晕（Ethereal Glass）：顶部中心向外扩散；主题令牌控强度，不挡交互 -->
             <Border IsHitTestVisible="False">
@@ -304,6 +305,7 @@
                             Margin="0,8,0,0"/>
                 </StackPanel>
             </Border>
+        </Grid>
         </Grid>
         </Grid>
         </Border>
