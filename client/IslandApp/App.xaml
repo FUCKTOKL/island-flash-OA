@@ -21,6 +21,7 @@
             <SolidColorBrush x:Key="ApprBorder" Color="#33FFFFFF" />
             <SolidColorBrush x:Key="ApprFg" Color="#FFEFF3F8" />
             <SolidColorBrush x:Key="ApprNum" Color="#FFE8A0AC" />
+            <SolidColorBrush x:Key="ApprSub" Color="#FF98A3B2" />
 
             <!-- 双主题令牌：白岛=冰磨砂玻璃，黑岛=烟熏石板玻璃；全部半透明叠 DesktopAcrylicBackdrop -->
             <ResourceDictionary.ThemeDictionaries>
