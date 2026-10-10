@@ -23,7 +23,25 @@
             </Border.Background>
             <Grid>
 
-            <!-- 翡翠光晕（Ethereal Glass）：顶部中心向外扩散；主题令牌控强度，不挡交互 -->
+            <!-- 冷玻璃色斑球（v3.2 签名）：两颗大径向渐变球垫在玻璃下，给毛玻璃可糊的色深 -->
+            <Ellipse IsHitTestVisible="False" Width="440" Height="440" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-150,-190,0,0">
+                <Ellipse.Fill>
+                    <RadialGradientBrush GradientOrigin="0.5,0.5" Center="0.5,0.5" RadiusX="0.5" RadiusY="0.5">
+                        <GradientStop Color="#594FA3A5" Offset="0"/>
+                        <GradientStop Color="#004FA3A5" Offset="1"/>
+                    </RadialGradientBrush>
+                </Ellipse.Fill>
+            </Ellipse>
+            <Ellipse IsHitTestVisible="False" Width="520" Height="520" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-190,-240">
+                <Ellipse.Fill>
+                    <RadialGradientBrush GradientOrigin="0.5,0.5" Center="0.5,0.5" RadiusX="0.5" RadiusY="0.5">
+                        <GradientStop Color="#4D7FA8D9" Offset="0"/>
+                        <GradientStop Color="#007FA8D9" Offset="1"/>
+                    </RadialGradientBrush>
+                </Ellipse.Fill>
+            </Ellipse>
+
+            <!-- 光晕：顶部中心向外扩散；主题令牌控强度，不挡交互 -->
             <Border IsHitTestVisible="False">
                 <Border.Background>
                     <RadialGradientBrush GradientOrigin="0.5,0" Center="0.5,0" RadiusX="0.75" RadiusY="1.4">
