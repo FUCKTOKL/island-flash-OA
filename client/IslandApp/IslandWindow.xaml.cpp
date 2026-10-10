@@ -163,7 +163,13 @@ namespace winrt::IslandApp::implementation
 
         // 整窗亚克力毛玻璃（用户拍板：半透明模糊，像素取证当年的奶灰层已证实是 NC 边框带而非亚克力本身）；
         // 自动跟随黑白主题取明暗 tint，Win10/关闭透明效果时自动回退；上层半透明令牌叠出岛层次
-        SystemBackdrop(winrt::Microsoft::UI::Xaml::Media::DesktopAcrylicBackdrop()); // Window 属性，非 Grid
+        // 整窗亚克力（1.3+ 简单封装）；浓度旋钮在 ApplyTint（Root 底色 alpha 叠加，1.5 无控制器 API）
+        SystemBackdrop(winrt::Microsoft::UI::Xaml::Media::DesktopAcrylicBackdrop());
+        {
+            std::vector<unsigned char> tb{ 60 };
+            if (ifoa::RegReadBinary(L"tint", tb) && !tb.empty()) m_tint = tb[0];
+        }
+        ApplyTint();
 
         // 初始位置：优先用持久化值，否则主屏顶部居中；始终钳制在工作区内
         auto wa = WorkArea();
@@ -318,6 +324,7 @@ namespace winrt::IslandApp::implementation
         ifoa::RegWriteBinary(L"dark", &b, 1); // 下次启动生效
         ThemeIcon().Glyph(m_dark ? L"\uE708" : L"\uE706"); // 月/日
         try { DarkTgl().IsOn(m_dark); } catch (...) {} // 设置页深色开关同步（元素常在，防御性）
+        ApplyTint(); // 玻璃 tint 色随主题翻转
         SelectTab(m_curTab); // 选中页签药丸颜色随主题刷新
     }
 
@@ -379,6 +386,7 @@ namespace winrt::IslandApp::implementation
             std::vector<unsigned char> ab{1};
             if (ifoa::RegReadBinary(L"autostart", ab)) TglAuto().IsOn(!ab.empty() && ab[0] != '0');
         }
+        TintSlider().Value(m_tint); // 玻璃浓度滑杆回读
 
         // 文件页：收藏集 + 群栏 + 两栏列表
         LoadFilesPage();
@@ -493,13 +501,19 @@ namespace winrt::IslandApp::implementation
         try
         {
             int shown = 0;
+            winrt::hstring first{};
             for (auto const& v : winrt::Windows::Data::Json::JsonArray::Parse(body))
             {
                 auto o = v.GetObject();
                 if (o.GetNamedBoolean(L"done")) continue; // docs/02：只看未完成前 5 条
+                if (first.empty()) first = o.GetNamedString(L"content"); // 胶囊活内容
                 if (shown++ >= 5) break;
                 AddTodoRow(static_cast<int>(o.GetNamedNumber(L"id")), o.GetNamedString(L"content"));
             }
+            // 胶囊=活的入口（DeskBox 哲学）：有待办显首条，无则回落把手
+            CapTodo().Text(first);
+            CapTodo().Visibility(first.empty() ? Visibility::Collapsed : Visibility::Visible);
+            CapDash().Visibility(first.empty() ? Visibility::Visible : Visibility::Collapsed);
             if (shown == 0)
             {
                 auto tb = Controls::TextBlock();
@@ -1287,5 +1301,26 @@ namespace winrt::IslandApp::implementation
     {
         if (DarkTgl().IsOn() == m_dark) return; // ApplyTheme 回同不开环
         OnThemeToggleClick(nullptr, nullptr);        // 复用：翻转 m_dark + ApplyTheme（内部回同开关）
+    }
+
+    // 材质浓度旋钮（DeskBox 式）：WinAppSDK 1.5 无 SystemBackdrop 控制器 API，
+    // ponytail: 改用 Root 底色 alpha 叠在亚克力上——tint 30→40% 至 90→88% 线性映射，观感等价
+    void IslandWindow::ApplyTint()
+    {
+        auto c = m_dark ? Windows::UI::Color{ 0, 0x1E, 0x22, 0x2C }
+                        : Windows::UI::Color{ 0, 0xED, 0xF1, 0xF7 };
+        int pct = 40 + (m_tint - 30) * (88 - 40) / 60; // 30-90 → 40%-88%
+        if (pct < 40) pct = 40; if (pct > 88) pct = 88;
+        c.A = static_cast<uint8_t>(pct * 255 / 100);
+        Root().Background(Media::SolidColorBrush(c)); // 本地覆盖 ThemeResource RootBg，主题切换时此处重设
+    }
+
+    void IslandWindow::OnTintChanged(IInspectable const&,
+                                     Controls::Primitives::RangeBaseValueChangedEventArgs const&)
+    {
+        m_tint = static_cast<unsigned char>(TintSlider().Value());
+        BYTE b = m_tint;
+        ifoa::RegWriteBinary(L"tint", &b, 1); // 偏好持久化
+        ApplyTint();
     }
 }

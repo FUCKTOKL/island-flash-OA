@@ -74,6 +74,7 @@ namespace winrt::IslandApp::implementation
         void OnSaveSettingsClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
         void OnChangePasswordClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
         void OnDarkTglToggled(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
+        void OnTintChanged(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::Controls::Primitives::RangeBaseValueChangedEventArgs const&);
 
         // ---- 文件页（左右分栏，P0 平铺列表） ----
         winrt::fire_and_forget LoadFilesPage();   // 登录后一次：收藏集 + 群栏 + 两栏
@@ -122,6 +123,8 @@ namespace winrt::IslandApp::implementation
         int m_selectedGroup{ 0 };  // 文件页群栏：0=全员公共区，>0=群 id
         bool m_dark{ false };      // 主题：false=白岛，true=黑岛（注册表 dark 字节记忆）
         int m_curTab{ 0 };         // 当前页签（切主题时刷新选中药丸用）
+        unsigned char m_tint{ 60 }; // 玻璃浓度偏好（30-90，注册表 tint）
+        void ApplyTint();           // 浓度 → Root 底色 alpha（叠在亚克力上的岛体浓度）
         int m_curConv{ -1 };       // 对话页当前会话 id（-1 未选）
         bool m_convIsGroup{ false };
         int m_myUid{ 0 };          // 我的 uid（气泡左右对齐用）

@@ -38,11 +38,14 @@
         <!-- ================= 胶囊态（216×36） ================= -->
         <!-- 胶囊态：极简把手（拍板：收起只留“-”）；未读时叠红点 -->
         <Grid x:Name="CapsulePanel" Height="36">
-            <Border Width="36" Height="4" CornerRadius="2" Background="{ThemeResource DashBrush}"
+            <!-- 胶囊活内容（DeskBox 哲学：胶囊=活的入口）：无待办时回落为把手 -->
+            <Border x:Name="CapDash" Width="36" Height="4" CornerRadius="2" Background="{ThemeResource DashBrush}"
                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <TextBlock x:Name="CapTodo" Text="" FontSize="11" Opacity="0.9" VerticalAlignment="Center"
+                       Margin="14,0,0,0" MaxWidth="128" TextTrimming="CharacterEllipsis" Visibility="Collapsed"/>
             <Border x:Name="Badge" CornerRadius="8" Background="{ThemeResource IslandDangerBrush}"
-                    MinWidth="16" Height="16" Margin="14,2,0,0" VerticalAlignment="Top"
-                    HorizontalAlignment="Center" Visibility="Collapsed">
+                    MinWidth="16" Height="16" Margin="0,2,12,0" VerticalAlignment="Top"
+                    HorizontalAlignment="Right" Visibility="Collapsed">
                 <TextBlock x:Name="BadgeText" Text="0" FontSize="10" Foreground="White"
                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
@@ -64,28 +67,28 @@
                 <Grid Margin="0,8,0,0">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <Button x:Name="Tab0" Tag="0" Click="OnTabClick" ToolTipService.ToolTip="工作台"
-                                Background="{ThemeResource ChipBg}" BorderThickness="0" CornerRadius="9" Padding="14,5">
+                                Background="{ThemeResource ChipBg}" BorderThickness="0" CornerRadius="6" Padding="14,5">
                             <StackPanel>
                                 <TextBlock Text="工作台" FontSize="13" FontWeight="SemiBold"/>
                                 <TextBlock Text="WORKBENCH" FontSize="7" FontFamily="Cascadia Mono" CharacterSpacing="80" Opacity="0.55"/>
                             </StackPanel>
                         </Button>
                         <Button x:Name="Tab1" Tag="1" Click="OnTabClick" ToolTipService.ToolTip="文件"
-                                Background="{ThemeResource ChipBg}" BorderThickness="0" CornerRadius="9" Padding="14,5">
+                                Background="{ThemeResource ChipBg}" BorderThickness="0" CornerRadius="6" Padding="14,5">
                             <StackPanel>
                                 <TextBlock Text="文件" FontSize="13" FontWeight="SemiBold"/>
                                 <TextBlock Text="FILES" FontSize="7" FontFamily="Cascadia Mono" CharacterSpacing="80" Opacity="0.55"/>
                             </StackPanel>
                         </Button>
                         <Button x:Name="Tab2" Tag="2" Click="OnTabClick" ToolTipService.ToolTip="对话"
-                                Background="{ThemeResource ChipBg}" BorderThickness="0" CornerRadius="9" Padding="14,5">
+                                Background="{ThemeResource ChipBg}" BorderThickness="0" CornerRadius="6" Padding="14,5">
                             <StackPanel>
                                 <TextBlock Text="对话" FontSize="13" FontWeight="SemiBold"/>
                                 <TextBlock Text="CHAT" FontSize="7" FontFamily="Cascadia Mono" CharacterSpacing="80" Opacity="0.55"/>
                             </StackPanel>
                         </Button>
                         <Button x:Name="Tab3" Tag="3" Click="OnTabClick" ToolTipService.ToolTip="个人中心"
-                                Background="{ThemeResource ChipBg}" BorderThickness="0" CornerRadius="9" Padding="14,5">
+                                Background="{ThemeResource ChipBg}" BorderThickness="0" CornerRadius="6" Padding="14,5">
                             <StackPanel>
                                 <TextBlock Text="个人中心" FontSize="13" FontWeight="SemiBold"/>
                                 <TextBlock Text="ME" FontSize="7" FontFamily="Cascadia Mono" CharacterSpacing="80" Opacity="0.55"/>
@@ -137,7 +140,7 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <!-- 待办浮片 -->
-                        <Border Grid.Row="0" CornerRadius="12" Background="{ThemeResource CardBg}"
+                        <Border Grid.Row="0" CornerRadius="8" Background="{ThemeResource CardBg}"
                                 BorderBrush="{ThemeResource CardBorder}" BorderThickness="1" Padding="14">
                             <Grid>
                                 <Grid.RowDefinitions>
@@ -156,13 +159,13 @@
                                     </Grid.ColumnDefinitions>
                                     <TextBox x:Name="TodoInput" PlaceholderText="添加待办…" FontSize="12"/>
                                     <Button Grid.Column="1" Content="添加" Click="OnAddTodoClick"
-                                            CornerRadius="12" Padding="16,7" FontSize="12"
+                                            CornerRadius="8" Padding="16,7" FontSize="12"
                                             Background="{ThemeResource IslandAccentBrush}" Foreground="White"/>
                                 </Grid>
                             </Grid>
                         </Border>
                         <!-- 客户端快捷方式（P2 接入启动器，现为占位） -->
-                        <Border Grid.Row="1" CornerRadius="12" Background="{ThemeResource CardBg}"
+                        <Border Grid.Row="1" CornerRadius="8" Background="{ThemeResource CardBg}"
                                 BorderBrush="{ThemeResource CardBorder}" BorderThickness="1" Padding="14,12">
                             <StackPanel>
                                 <Grid>
@@ -177,25 +180,25 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Grid.Column="0" Spacing="4" ToolTipService.ToolTip="待 P2 接入启动器">
-                                        <Border CornerRadius="12" Background="{ThemeResource IslandAccentBrush}" Height="40">
+                                        <Border CornerRadius="8" Background="{ThemeResource IslandAccentBrush}" Height="40">
                                             <TextBlock Text="企微" Foreground="White" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Border>
                                         <TextBlock Text="企业微信" FontSize="10" Opacity="0.65" HorizontalAlignment="Center"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Spacing="4" ToolTipService.ToolTip="待 P2 接入启动器">
-                                        <Border CornerRadius="12" Background="{ThemeResource IslandDangerBrush}" Height="40">
+                                        <Border CornerRadius="8" Background="{ThemeResource IslandDangerBrush}" Height="40">
                                             <TextBlock Text="邮箱" Foreground="White" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Border>
                                         <TextBlock Text="Outlook" FontSize="10" Opacity="0.65" HorizontalAlignment="Center"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="2" Spacing="4" ToolTipService.ToolTip="待 P2 接入启动器">
-                                        <Border CornerRadius="12" Background="#7FA8D9" Height="40">
+                                        <Border CornerRadius="8" Background="#7FA8D9" Height="40">
                                             <TextBlock Text="表格" Foreground="White" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Border>
                                         <TextBlock Text="Excel" FontSize="10" Opacity="0.65" HorizontalAlignment="Center"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="3" Spacing="4" ToolTipService.ToolTip="待 P2 接入启动器">
-                                        <Border CornerRadius="12" Background="{ThemeResource ApprBg}" Height="40">
+                                        <Border CornerRadius="8" Background="{ThemeResource ApprBg}" Height="40">
                                             <TextBlock Text="代码" Foreground="White" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Border>
                                         <TextBlock Text="VS Code" FontSize="10" Opacity="0.65" HorizontalAlignment="Center"/>
@@ -205,7 +208,7 @@
                         </Border>
                     </Grid>
                     <!-- 天气柱（中央支点） -->
-                    <Border Grid.Column="1" CornerRadius="12" Background="{ThemeResource CardBg}"
+                    <Border Grid.Column="1" CornerRadius="8" Background="{ThemeResource CardBg}"
                             BorderBrush="{ThemeResource CardBorder}" BorderThickness="1" Padding="18">
                         <StackPanel VerticalAlignment="Center" Spacing="4">
                             <TextBlock Text="天气 · 北京" FontSize="13" Opacity="0.6" FontFamily="Segoe UI Variable Display" CharacterSpacing="60" HorizontalAlignment="Center"/>
@@ -220,7 +223,7 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <Border Grid.Row="0" CornerRadius="12"
+                        <Border Grid.Row="0" CornerRadius="8"
                                 Background="{ThemeResource ApprBg}" BorderBrush="{ThemeResource ApprBorder}" BorderThickness="1" Padding="16,10">
                             <StackPanel>
                                 <Grid>
@@ -237,13 +240,13 @@
                                     <TextBlock x:Name="ApprSub" Grid.Column="1" Text="加载中…" FontSize="11" Opacity="0.75"
                                                Foreground="{ThemeResource ApprFg}" VerticalAlignment="Center" Margin="14,0,0,0" TextWrapping="Wrap"/>
                                 </Grid>
-                                <Button Content="进入审批 ›" Click="OnOpenApprovalsClick" CornerRadius="10"
+                                <Button Content="进入审批 ›" Click="OnOpenApprovalsClick" CornerRadius="6"
                                         BorderBrush="{ThemeResource ApprFg}" BorderThickness="1" Padding="14,5"
                                         Background="Transparent" Foreground="{ThemeResource ApprFg}" FontSize="11"
                                         HorizontalAlignment="Left" Margin="0,8,0,0"/>
                             </StackPanel>
                         </Border>
-                        <Border Grid.Row="1" CornerRadius="12" Background="{ThemeResource CardBg}"
+                        <Border Grid.Row="1" CornerRadius="8" Background="{ThemeResource CardBg}"
                                 BorderBrush="{ThemeResource CardBorder}" BorderThickness="1" Padding="14">
                             <StackPanel>
                                 <Grid>
@@ -272,7 +275,7 @@
                     </Grid.ColumnDefinitions>
 
                     <!-- 公共文件岛：标题左上 / 列表中 / 群选择器下沉底部操作条 -->
-                    <Border Grid.Column="0" CornerRadius="14" Background="{ThemeResource CardBg}"
+                    <Border Grid.Column="0" CornerRadius="8" Background="{ThemeResource CardBg}"
                             BorderBrush="{ThemeResource CardBorder}" BorderThickness="1" Padding="14" Margin="0,0,8,0">
                         <Grid>
                             <Grid.RowDefinitions>
@@ -291,7 +294,7 @@
                     </Border>
 
                     <!-- 我的文件岛：上传按钮下沉底部操作条 -->
-                    <Border Grid.Column="1" CornerRadius="14" Background="{ThemeResource CardBg}"
+                    <Border Grid.Column="1" CornerRadius="8" Background="{ThemeResource CardBg}"
                             BorderBrush="{ThemeResource CardBorder}" BorderThickness="1" Padding="14" Margin="8,0,0,0">
                         <Grid>
                             <Grid.RowDefinitions>
@@ -305,7 +308,7 @@
                                 <StackPanel x:Name="MyFileList" Spacing="6"/>
                             </ScrollViewer>
                             <Button Grid.Row="2" Content="上传文件到我的空间" Click="OnUploadClick"
-                                    CornerRadius="12" Padding="16,8" FontSize="12" Margin="0,10,0,0"
+                                    CornerRadius="8" Padding="16,8" FontSize="12" Margin="0,10,0,0"
                                     HorizontalAlignment="Stretch" Background="{ThemeResource IslandAccentBrush}" Foreground="White"/>
                         </Grid>
                     </Border>
@@ -319,7 +322,7 @@
                     </Grid.ColumnDefinitions>
 
                     <!-- 会话列表岛 -->
-                    <Border Grid.Column="0" CornerRadius="14" Background="{ThemeResource CardBg}"
+                    <Border Grid.Column="0" CornerRadius="8" Background="{ThemeResource CardBg}"
                             BorderBrush="{ThemeResource CardBorder}" BorderThickness="1" Padding="8" Margin="0,0,8,0">
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
                             <StackPanel x:Name="ConvList" Spacing="4"/>
@@ -327,7 +330,7 @@
                     </Border>
 
                     <!-- 会话岛 -->
-                    <Border Grid.Column="1" CornerRadius="14" Background="{ThemeResource CardBg}"
+                    <Border Grid.Column="1" CornerRadius="8" Background="{ThemeResource CardBg}"
                             BorderBrush="{ThemeResource CardBorder}" BorderThickness="1" Padding="14">
                         <Grid>
                             <Grid.RowDefinitions>
@@ -349,7 +352,7 @@
                                 <TextBox x:Name="MsgInput" PlaceholderText="发消息…（Enter 发送）" FontSize="12"
                                          KeyDown="OnMsgKey"/>
                                 <Button Grid.Column="1" Content="发送" Click="OnSendClick" FontSize="12"
-                                        CornerRadius="12" Padding="16,7"
+                                        CornerRadius="8" Padding="16,7"
                                         Background="{ThemeResource IslandAccentBrush}" Foreground="White"/>
                             </Grid>
                         </Grid>
@@ -364,7 +367,7 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="0" Spacing="10">
-                        <Border CornerRadius="12" Background="{ThemeResource CardBg}"
+                        <Border CornerRadius="8" Background="{ThemeResource CardBg}"
                                 BorderBrush="{ThemeResource CardBorder}" BorderThickness="1" Padding="14">
                             <StackPanel Spacing="6">
                                 <TextBlock Text="个人资料" FontSize="14" FontWeight="SemiBold" FontFamily="Segoe UI Variable Display" CharacterSpacing="40"/>
@@ -373,19 +376,19 @@
                                 <TextBlock x:Name="ProfUid" Text="—" FontSize="11" Opacity="0.45" FontFamily="Cascadia Mono"/>
                             </StackPanel>
                         </Border>
-                        <Border CornerRadius="12" Background="{ThemeResource CardBg}"
+                        <Border CornerRadius="8" Background="{ThemeResource CardBg}"
                                 BorderBrush="{ThemeResource CardBorder}" BorderThickness="1" Padding="14">
                             <StackPanel Spacing="8">
                                 <TextBlock Text="修改密码" FontSize="14" FontWeight="SemiBold" FontFamily="Segoe UI Variable Display" CharacterSpacing="40"/>
                                 <PasswordBox x:Name="PwOld" Header="原密码"/>
                                 <PasswordBox x:Name="PwNew" Header="新密码"/>
-                                <Button Content="修改密码" Click="OnChangePasswordClick" CornerRadius="12" Padding="16,7" FontSize="12"
+                                <Button Content="修改密码" Click="OnChangePasswordClick" CornerRadius="8" Padding="16,7" FontSize="12"
                                         Background="{ThemeResource IslandAccentBrush}" Foreground="White"/>
                                 <TextBlock x:Name="PwNote" Text="" FontSize="11" Opacity="0.7" Foreground="{ThemeResource CardBorder}" TextWrapping="Wrap"/>
                             </StackPanel>
                         </Border>
                     </StackPanel>
-                    <Border Grid.Column="1" CornerRadius="12" Background="{ThemeResource CardBg}"
+                    <Border Grid.Column="1" CornerRadius="8" Background="{ThemeResource CardBg}"
                             BorderBrush="{ThemeResource CardBorder}" BorderThickness="1" Padding="16">
                         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="6">
                             <Ellipse Width="64" Height="64" Fill="{ThemeResource IslandAccentBrush}"/>
@@ -395,15 +398,17 @@
                             <TextBlock x:Name="ProfUid2" Text="" FontSize="10" Opacity="0.45" HorizontalAlignment="Center" FontFamily="Cascadia Mono"/>
                         </StackPanel>
                     </Border>
-                    <Border Grid.Column="2" CornerRadius="12" Background="{ThemeResource CardBg}"
+                    <Border Grid.Column="2" CornerRadius="8" Background="{ThemeResource CardBg}"
                             BorderBrush="{ThemeResource CardBorder}" BorderThickness="1" Padding="14">
                         <StackPanel Spacing="10">
                             <TextBlock Text="设置" FontSize="14" FontWeight="SemiBold" FontFamily="Segoe UI Variable Display" CharacterSpacing="40"/>
                             <TextBox x:Name="ServInput" Header="服务端地址" PlaceholderText="http://192.168.1.20:8000" FontSize="12"/>
                             <ToggleSwitch x:Name="TglAuto" Header="开机自启（注册表偏好，P2 生效）" OnContent="" OffContent="" FontSize="12"/>
                             <ToggleSwitch x:Name="DarkTgl" Header="深色主题" OnContent="" OffContent="" FontSize="12" Toggled="OnDarkTglToggled"/>
+                            <Slider x:Name="TintSlider" Header="玻璃浓度（亚克力材质）" Minimum="30" Maximum="90"
+                                    StepFrequency="5" Width="230" HorizontalAlignment="Left" ValueChanged="OnTintChanged"/>
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <Button Content="保存设置" Click="OnSaveSettingsClick" CornerRadius="12" Padding="16,7" FontSize="12"
+                                <Button Content="保存设置" Click="OnSaveSettingsClick" CornerRadius="8" Padding="16,7" FontSize="12"
                                         Background="{ThemeResource IslandAccentBrush}" Foreground="White"/>
                                 <TextBlock x:Name="SetNote" Text="" FontSize="11" Opacity="0.7" VerticalAlignment="Center" TextWrapping="Wrap"/>
                             </StackPanel>
@@ -417,7 +422,7 @@
             <!-- 审批中心浮层（天平账：对账单） -->
             <Grid x:Name="ApprovalMask" Grid.Row="0" Grid.RowSpan="2" Visibility="Collapsed"
                   Background="#8C141820">
-                <Border CornerRadius="16" Background="{ThemeResource LoginBg}" BorderBrush="{ThemeResource LoginBorder}"
+                <Border CornerRadius="8" Background="{ThemeResource LoginBg}" BorderBrush="{ThemeResource LoginBorder}"
                         BorderThickness="1" Width="660" MaxHeight="400" Padding="18"
                         HorizontalAlignment="Center" VerticalAlignment="Center">
                     <Grid RowSpacing="10">
@@ -442,7 +447,7 @@
 
         <!-- ================= 登录卡（无 token 时强制展开；docs/02 §四） ================= -->
         <Grid x:Name="LoginPanel" Visibility="Collapsed">
-            <Border Width="300" Padding="28,24" CornerRadius="20"
+            <Border Width="300" Padding="28,24" CornerRadius="8"
                     Background="{ThemeResource LoginBg}" BorderBrush="{ThemeResource LoginBorder}" BorderThickness="1"
                     HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Spacing="10">
@@ -462,7 +467,7 @@
                                Foreground="{ThemeResource IslandDangerBrush}"
                                TextWrapping="Wrap" Visibility="Collapsed"/>
                     <Button x:Name="LoginBtn" Content="登录" Click="OnLoginClick"
-                            HorizontalAlignment="Stretch" CornerRadius="14"
+                            HorizontalAlignment="Stretch" CornerRadius="8"
                             Background="{ThemeResource IslandAccentBrush}" Foreground="White"
                             Margin="0,8,0,0"/>
                 </StackPanel>
