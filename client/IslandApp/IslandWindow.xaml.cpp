@@ -598,72 +598,137 @@ namespace winrt::IslandApp::implementation
         panel.Children().Append(tb);
     }
 
-    void IslandWindow::AddFileRow(Controls::StackPanel const& panel,
+    // DeskBox 式文件瓦片：类型色块+缩写 / 两行文件名 / 点击下载 / 角标收藏(可点) / 我的可删
+    void IslandWindow::AddFileRow(Controls::ItemsControl const& panel,
                                    winrt::Windows::Data::Json::JsonObject const& o, bool mine)
     {
         int id = static_cast<int>(o.GetNamedNumber(L"id"));
         auto name = o.GetNamedString(L"name");
+        bool fav = m_favIds.count(id) != 0;
 
-        auto row = Controls::Grid();
-        auto cd1 = Controls::ColumnDefinition();
-        cd1.Width(GridLength(1, GridUnitType::Star));
-        auto cd2 = Controls::ColumnDefinition();
-        cd2.Width(GridLength(1, GridUnitType::Auto));
-        row.ColumnDefinitions().Append(cd1);
-        row.ColumnDefinitions().Append(cd2);
+        // 扩展名 → 缩写 + 配色
+        std::wstring wname(name.c_str());
+        auto dot = wname.rfind(L'.');
+        std::wstring ext = dot == std::wstring::npos ? L"FILE" : wname.substr(dot + 1);
+        for (auto& c : ext) c = towupper(c);
+        if (ext.size() > 4) ext = ext.substr(0, 4);
+        Windows::UI::Color tc{ 0xFF, 0x60, 0x6A, 0x76 };
+        if (ext == L"XLS" || ext == L"XLSX") tc = { 0xFF, 0x4F, 0xA3, 0xA5 };
+        else if (ext == L"DOC" || ext == L"DOCX") tc = { 0xFF, 0x7F, 0xA8, 0xD9 };
+        else if (ext == L"PDF") tc = { 0xFF, 0xC7, 0x4E, 0x5C };
+        else if (ext == L"ZIP" || ext == L"RAR" || ext == L"7Z") tc = { 0xFF, 0xC9, 0xA2, 0x27 };
+        else if (ext == L"PNG" || ext == L"JPG" || ext == L"JPEG" || ext == L"GIF" || ext == L"WEBP") tc = { 0xFF, 0x4F, 0xA3, 0xA5 };
+        else if (ext == L"MD" || ext == L"TXT") tc = { 0xFF, 0x88, 0x92, 0x9E };
 
-        auto info = Controls::StackPanel();
-        info.Orientation(Controls::Orientation::Horizontal);
-        info.Spacing(8);
-        auto ic = Controls::FontIcon();
-        ic.Glyph(IsImageName(std::wstring(name)) ? L"\uE8B9" : L"\uE7C3"); // 图片/文档图标
-        ic.FontSize(14);
-        ic.Opacity(0.7);
-        auto texts = Controls::StackPanel();
-        texts.Spacing(1);
-        auto tb = Controls::TextBlock();
-        tb.Text(name);
-        tb.FontSize(13);
-        tb.TextTrimming(TextTrimming::CharacterEllipsis);
-        tb.MaxWidth(260);
+        auto tile = Controls::Border();
+        tile.Width(80);
+        tile.CornerRadius(CornerRadius(8));
+        tile.Background(Media::SolidColorBrush(Windows::UI::Color{ 0x66, 0xFF, 0xFF, 0xFF }));
+        tile.BorderBrush(Media::SolidColorBrush(Windows::UI::Color{ 0x24, 0x00, 0x00, 0x00 }));
+        tile.BorderThickness(Thickness{ 1 });
+        tile.Padding(Thickness{ 4, 6, 4, 4 });
+        tile.Margin(Thickness{ 2 });
+        tile.HorizontalAlignment(HorizontalAlignment::Stretch);
+        tile.VerticalAlignment(VerticalAlignment::Stretch);
+
+        auto g = Controls::Grid();
+        auto sp = Controls::StackPanel();
+        sp.HorizontalAlignment(HorizontalAlignment::Center);
+        sp.VerticalAlignment(VerticalAlignment::Center);
+        sp.Spacing(4);
+
+        auto badge = Controls::Border();
+        badge.Width(44); badge.Height(44); badge.CornerRadius(CornerRadius(10));
+        badge.Background(Media::SolidColorBrush(tc));
+        auto et = Controls::TextBlock();
+        et.Text(winrt::hstring(ext));
+        et.FontSize(10);
+        et.FontWeight(winrt::Microsoft::UI::Text::FontWeights::Bold());
+        et.Foreground(Media::SolidColorBrush(Windows::UI::Color{ 0xFF, 0xFF, 0xFF, 0xFF }));
+        et.HorizontalAlignment(HorizontalAlignment::Center);
+        et.VerticalAlignment(VerticalAlignment::Center);
+        badge.Child(et);
+
+        auto nm = Controls::TextBlock();
+        nm.Text(name);
+        nm.FontSize(11);
+        nm.MaxLines(2);
+        nm.TextWrapping(TextWrapping::Wrap);
+        nm.TextTrimming(TextTrimming::CharacterEllipsis);
+        nm.MaxWidth(76);
+        nm.TextAlignment(TextAlignment::Center);
+
         auto sz = Controls::TextBlock();
         sz.Text(FmtSize(o.GetNamedNumber(L"size")));
-        sz.FontSize(11);
+        sz.FontSize(9);
         sz.Opacity(0.5);
-        texts.Children().Append(tb);
-        texts.Children().Append(sz);
-        info.Children().Append(ic);
-        info.Children().Append(texts);
-        Controls::Grid::SetColumn(info, 0);
+        sz.TextAlignment(TextAlignment::Center);
 
+        sp.Children().Append(badge);
+        sp.Children().Append(nm);
+        sp.Children().Append(sz);
+        g.Children().Append(sp);
+
+        // 角标列（右上竖排）：收藏 / 我的删除
         auto ops = Controls::StackPanel();
-        ops.Orientation(Controls::Orientation::Horizontal);
-        ops.Spacing(2);
-        auto dl = IconBtn(L"\uE896", L"下载");
-        dl.Click([this, id, name](IInspectable const&, RoutedEventArgs const&) { DownloadFile(id, name); });
-        auto st = IconBtn(m_favIds.count(id) ? L"\uE735" : L"\uE734", L"收藏");
-        st.Click([this, id](IInspectable const&, RoutedEventArgs const&) { ToggleFavorite(id); });
-        ops.Children().Append(dl);
-        ops.Children().Append(st);
+        ops.HorizontalAlignment(HorizontalAlignment::Right);
+        ops.VerticalAlignment(VerticalAlignment::Top);
+        ops.Spacing(0);
+        auto stb = Controls::Button();
+        stb.Background(Media::SolidColorBrush(Windows::UI::Color{ 0x00, 0, 0, 0 }));
+        stb.BorderThickness(Thickness{ 0 });
+        stb.Padding(Thickness{ 2 });
+        stb.MinWidth(18); stb.MinHeight(18);
+        auto sti = Controls::FontIcon();
+        sti.Glyph(fav ? L"\uE735" : L"\uE734");
+        sti.FontSize(10);
+        sti.Foreground(Media::SolidColorBrush(fav ? Windows::UI::Color{ 0xFF, 0xE8, 0xA0, 0xAC }
+                                                  : Windows::UI::Color{ 0xFF, 0x88, 0x92, 0x9E }));
+        stb.Content(sti);
+        stb.Click([this, id](IInspectable const&, RoutedEventArgs const&) { ToggleFavorite(id); });
+        stb.Tapped([](IInspectable const&, Input::TappedRoutedEventArgs const& e) { e.Handled(true); });
+        ops.Children().Append(stb);
         if (mine)
         {
-            auto del = IconBtn(L"\uE74D", L"删除");
-            del.Click([this, id](IInspectable const&, RoutedEventArgs const&) { DeleteMyFile(id); });
-            ops.Children().Append(del);
+            auto dlb = Controls::Button();
+            dlb.Background(Media::SolidColorBrush(Windows::UI::Color{ 0x00, 0, 0, 0 }));
+            dlb.BorderThickness(Thickness{ 0 });
+            dlb.Padding(Thickness{ 2 });
+            dlb.MinWidth(18); dlb.MinHeight(18);
+            auto dli = Controls::FontIcon();
+            dli.Glyph(L"\uE74D");
+            dli.FontSize(10);
+            dli.Foreground(Media::SolidColorBrush(Windows::UI::Color{ 0xFF, 0x88, 0x92, 0x9E }));
+            dlb.Content(dli);
+            dlb.Click([this, id](IInspectable const&, RoutedEventArgs const&) { DeleteMyFile(id); });
+            dlb.Tapped([](IInspectable const&, Input::TappedRoutedEventArgs const& e) { e.Handled(true); });
+            ops.Children().Append(dlb);
         }
-        Controls::Grid::SetColumn(ops, 1);
+        g.Children().Append(ops);
 
-        row.Children().Append(info);
-        row.Children().Append(ops);
-        panel.Children().Append(row);
+        tile.Child(g);
+        tile.Tapped([this, id, name](IInspectable const&, Input::TappedRoutedEventArgs const&) {
+            DownloadFile(id, name);
+        });
+        panel.Items().Append(tile);
+    }
+
+    // 空态提示进网格（ItemsControl 无 Children）
+    void IslandWindow::AddGridHint(Controls::ItemsControl const& panel, winrt::hstring const& text)
+    {
+        auto tb = Controls::TextBlock();
+        tb.Text(text);
+        tb.FontSize(12);
+        tb.Opacity(0.5);
+        panel.Items().Append(tb);
     }
 
     winrt::fire_and_forget IslandWindow::LoadMyFiles()
     {
         auto lifetime = get_strong();
         auto body = co_await m_api.GetAsync(L"/files?scope=personal");
-        MyFileList().Children().Clear();
-        if (body.empty()) { AddListHint(MyFileList(), L"（加载失败）"); co_return; }
+        MyFileList().Items().Clear();
+        if (body.empty()) { AddGridHint(MyFileList(), L"（加载失败）"); co_return; }
         int n = 0;
         try
         {
@@ -674,7 +739,8 @@ namespace winrt::IslandApp::implementation
             }
         }
         catch (...) {}
-        if (n == 0) AddListHint(MyFileList(), L"（空 · 右上「上传」）");
+        MyCount().Text(winrt::hstring(std::to_wstring(n) + L" 项"));
+        if (n == 0) AddGridHint(MyFileList(), L"（空 · 右上「上传」）");
     }
 
     winrt::fire_and_forget IslandWindow::LoadPublicFiles()
@@ -683,8 +749,8 @@ namespace winrt::IslandApp::implementation
         std::wstring url = L"/files?scope=public";
         if (m_selectedGroup) url += L"&group_id=" + std::to_wstring(m_selectedGroup);
         auto body = co_await m_api.GetAsync(winrt::hstring(url));
-        PublicFileList().Children().Clear();
-        if (body.empty()) { AddListHint(PublicFileList(), L"（加载失败）"); co_return; }
+        PublicFileList().Items().Clear();
+        if (body.empty()) { AddGridHint(PublicFileList(), L"（加载失败）"); co_return; }
         int n = 0;
         try
         {
@@ -695,7 +761,8 @@ namespace winrt::IslandApp::implementation
             }
         }
         catch (...) {}
-        if (n == 0) AddListHint(PublicFileList(), L"（空 · 全员公共区仅管理员可传）");
+        PubCount().Text(winrt::hstring(std::to_wstring(n) + L" 项"));
+        if (n == 0) AddGridHint(PublicFileList(), L"（空 · 全员公共区仅管理员可传）");
     }
 
     winrt::fire_and_forget IslandWindow::LoadFilesPage()

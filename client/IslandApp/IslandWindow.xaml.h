@@ -84,8 +84,9 @@ namespace winrt::IslandApp::implementation
         winrt::fire_and_forget DownloadFile(int id, winrt::hstring name); // GET 下载流 + 另存
         winrt::fire_and_forget ToggleFavorite(int id);
         winrt::fire_and_forget DeleteMyFile(int id);
-        void AddFileRow(Microsoft::UI::Xaml::Controls::StackPanel const& panel,
-                        Windows::Data::Json::JsonObject const& o, bool mine); // 文件行
+        void AddFileRow(Microsoft::UI::Xaml::Controls::ItemsControl const& panel,
+                        Windows::Data::Json::JsonObject const& o, bool mine); // 文件瓦片（DeskBox 图标格）
+        void AddGridHint(Microsoft::UI::Xaml::Controls::ItemsControl const& panel, winrt::hstring const& text);
 
         // ---- 对话页（左列表右会话，WS 实时） ----
         winrt::fire_and_forget LoadConvs();                     // 会话列表
