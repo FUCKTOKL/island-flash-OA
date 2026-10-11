@@ -365,10 +365,16 @@ namespace winrt::IslandApp::implementation
             try
             {
                 auto obj = winrt::Windows::Data::Json::JsonObject::Parse(me);
-                auto disp = obj.HasNamedString(L"display_name") && !obj.GetNamedString(L"display_name").empty()
+                namespace jv = winrt::Windows::Data::Json;
+                auto disp = (obj.HasKey(L"display_name")
+                             && obj.GetNamedValue(L"display_name").ValueType() == jv::JsonValueType::String
+                             && !obj.GetNamedString(L"display_name").empty())
                                 ? obj.GetNamedString(L"display_name")
                                 : obj.GetNamedString(L"username");
-                auto role = obj.HasNamedString(L"role") ? obj.GetNamedString(L"role") : winrt::hstring(L"—");
+                auto role = (obj.HasKey(L"role")
+                             && obj.GetNamedValue(L"role").ValueType() == jv::JsonValueType::String)
+                                ? obj.GetNamedString(L"role")
+                                : winrt::hstring(L"—");
                 MeWelcome().Text(L"欢迎，" + disp + L"（" + role + L"）");
                 m_myUid = static_cast<int>(obj.GetNamedNumber(L"id")); // 气泡左右对齐用
                 // 天平账：名片/资料卡回填
@@ -1404,7 +1410,8 @@ namespace winrt::IslandApp::implementation
         PwNote().Text(L"提交中…");
         std::wstring body = L"{\"old_password\":\"" + JsonEsc(oldp) + L"\",\"new_password\":\"" + JsonEsc(newp) + L"\"}";
         auto resp = co_await m_api.PutAsync(L"/api/users/me/password", winrt::hstring(body));
-        if (resp.find(L"\"ok\"") != std::wstring::npos || resp.find(L"true") != std::wstring::npos)
+        std::wstring r(resp.c_str());
+        if (r.find(L"\"ok\"") != std::wstring::npos || r.find(L"true") != std::wstring::npos)
         {
             PwNote().Text(L"密码已更新 · 请牢记（7 天后 token 过期需重登）");
             PwNew().Password(L"");
@@ -1412,8 +1419,8 @@ namespace winrt::IslandApp::implementation
         }
         else
         {
-            PwNote().Text(resp.empty() ? L"修改失败（服务端无响应）"
-                                       : (resp.find(L"400") != std::wstring::npos ? L"原密码不正确" : L"修改失败"));
+            PwNote().Text(r.empty() ? L"修改失败（服务端无响应）"
+                                    : (r.find(L"400") != std::wstring::npos ? L"原密码不正确" : L"修改失败"));
         }
     }
 
