@@ -75,6 +75,8 @@ namespace winrt::IslandApp::implementation
         void OnChangePasswordClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
         void OnDarkTglToggled(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
         void OnTintChanged(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::Controls::Primitives::RangeBaseValueChangedEventArgs const&);
+        void OnAppDragOver(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::DragEventArgs const&);
+        void OnAppDrop(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::DragEventArgs const&);
 
         // ---- 文件页（左右分栏，P0 平铺列表） ----
         winrt::fire_and_forget LoadFilesPage();   // 登录后一次：收藏集 + 群栏 + 两栏
@@ -126,6 +128,11 @@ namespace winrt::IslandApp::implementation
         int m_curTab{ 0 };         // 当前页签（切主题时刷新选中药丸用）
         unsigned char m_tint{ 60 }; // 玻璃浓度偏好（30-90，注册表 tint）
         void ApplyTint();           // 浓度 → Root 底色 alpha（叠在亚克力上的岛体浓度）
+        winrt::fire_and_forget DoAppDrop(Windows::ApplicationModel::DataTransfer::DataPackageView dv); // 拖入 → 复制进快捷方式库
+        winrt::fire_and_forget LoadShortcuts();    // 扫库 → 瓦片
+        winrt::fire_and_forget LaunchShortcut(int idx); // 点瓦片启动
+        static Windows::UI::Color ExtColor(std::wstring const& ext); // 扩展名 → 类型色
+        std::vector<winrt::Windows::Storage::StorageFile> m_shortcuts; // 快捷方式库（≤4）
         int m_curConv{ -1 };       // 对话页当前会话 id（-1 未选）
         bool m_convIsGroup{ false };
         int m_myUid{ 0 };          // 我的 uid（气泡左右对齐用）

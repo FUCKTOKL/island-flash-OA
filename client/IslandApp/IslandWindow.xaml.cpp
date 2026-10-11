@@ -1,4 +1,8 @@
 #include "pch.h"
+#include <winrt/Windows.Storage.h>
+#include <winrt/Windows.ApplicationModel.DataTransfer.h>
+#include <winrt/Windows.System.h>
+#include <filesystem>
 #include "IslandWindow.xaml.h"
 #if __has_include("IslandWindow.g.cpp")
 #include "IslandWindow.g.cpp"
@@ -375,7 +379,8 @@ namespace winrt::IslandApp::implementation
         m_ws.Start(m_api.Base(), token, m_dq,
                    [this](winrt::hstring type) { OnWsEvent(type); });
 
-        // 工作台小组件：待办 + 天气 + 审批计数
+        // 工作台小组件：待办 + 天气 + 审批计数 + 快捷方式
+        LoadShortcuts();
         LoadTodos();
         LoadWeather();
         LoadApprovalsHero();
@@ -612,13 +617,7 @@ namespace winrt::IslandApp::implementation
         std::wstring ext = dot == std::wstring::npos ? L"FILE" : wname.substr(dot + 1);
         for (auto& c : ext) c = towupper(c);
         if (ext.size() > 4) ext = ext.substr(0, 4);
-        Windows::UI::Color tc{ 0xFF, 0x60, 0x6A, 0x76 };
-        if (ext == L"XLS" || ext == L"XLSX") tc = { 0xFF, 0x4F, 0xA3, 0xA5 };
-        else if (ext == L"DOC" || ext == L"DOCX") tc = { 0xFF, 0x7F, 0xA8, 0xD9 };
-        else if (ext == L"PDF") tc = { 0xFF, 0xC7, 0x4E, 0x5C };
-        else if (ext == L"ZIP" || ext == L"RAR" || ext == L"7Z") tc = { 0xFF, 0xC9, 0xA2, 0x27 };
-        else if (ext == L"PNG" || ext == L"JPG" || ext == L"JPEG" || ext == L"GIF" || ext == L"WEBP") tc = { 0xFF, 0x4F, 0xA3, 0xA5 };
-        else if (ext == L"MD" || ext == L"TXT") tc = { 0xFF, 0x88, 0x92, 0x9E };
+        Windows::UI::Color tc = ExtColor(ext);
 
         auto tile = Controls::Border();
         tile.Width(80);
@@ -1380,6 +1379,136 @@ namespace winrt::IslandApp::implementation
         if (pct < 40) pct = 40; if (pct > 88) pct = 88;
         c.A = static_cast<uint8_t>(pct * 255 / 100);
         Root().Background(Media::SolidColorBrush(c)); // 本地覆盖 ThemeResource RootBg，主题切换时此处重设
+    }
+
+    /* ===== 客户端快捷方式：DeskBox 式拖拽自存（%LOCALAPPDATA%\IF-OA\shortcuts，上限 4） ===== */
+
+    static std::wstring ShortcutDir()
+    {
+        const char* la = getenv("LOCALAPPDATA");
+        std::wstring base = la ? std::wstring(la, la + strlen(la)) : L"C:\\Users\\Public";
+        return base + L"\\IF-OA\\shortcuts";
+    }
+
+    Windows::UI::Color IslandWindow::ExtColor(std::wstring const& ext)
+    {
+        if (ext == L"XLS" || ext == L"XLSX") return { 0xFF, 0x4F, 0xA3, 0xA5 };
+        if (ext == L"DOC" || ext == L"DOCX") return { 0xFF, 0x7F, 0xA8, 0xD9 };
+        if (ext == L"PDF") return { 0xFF, 0xC7, 0x4E, 0x5C };
+        if (ext == L"ZIP" || ext == L"RAR" || ext == L"7Z") return { 0xFF, 0xC9, 0xA2, 0x27 };
+        if (ext == L"PNG" || ext == L"JPG" || ext == L"JPEG" || ext == L"GIF" || ext == L"WEBP")
+            return { 0xFF, 0x4F, 0xA3, 0xA5 };
+        if (ext == L"MD" || ext == L"TXT") return { 0xFF, 0x88, 0x92, 0x9E };
+        if (ext == L"EXE" || ext == L"LNK") return { 0xFF, 0x2E, 0x34, 0x40 };
+        return { 0xFF, 0x60, 0x6A, 0x76 };
+    }
+
+    void IslandWindow::OnAppDragOver(IInspectable const&, DragEventArgs const& e)
+    {
+        e.AcceptedOperation(Windows::ApplicationModel::DataTransfer::DataPackageOperation::Copy);
+    }
+
+    void IslandWindow::OnAppDrop(IInspectable const&, DragEventArgs const& e)
+    {
+        DoAppDrop(e.DataView());
+    }
+
+    winrt::fire_and_forget IslandWindow::DoAppDrop(Windows::ApplicationModel::DataTransfer::DataPackageView dv)
+    {
+        auto lifetime = get_strong();
+        if (!dv.Contains(Windows::ApplicationModel::DataTransfer::StandardDataFormats::StorageItems())) co_return;
+        auto items = co_await dv.GetStorageItemsAsync();
+        try { std::filesystem::create_directories(ShortcutDir()); } catch (...) {}
+        int added = 0;
+        for (auto const& it : items)
+        {
+            if (m_shortcuts.size() + added >= 4) break; // AGENTS 拍板：最多 4 个
+            if (auto f = it.try_as<winrt::Windows::Storage::StorageFile>())
+            {
+                try
+                {
+                    auto dir = co_await winrt::Windows::Storage::StorageFolder::GetFolderFromPathAsync(
+                        winrt::hstring(ShortcutDir()));
+                    co_await f.CopyAsync(dir, f.Name(),
+                                         winrt::Windows::Storage::NameCollisionOption::ReplaceExisting);
+                    added++;
+                }
+                catch (...) {}
+            }
+        }
+        if (added == 0) AppHint().Text(L"未收入（需文件项 · 上限 4 个）");
+        else LoadShortcuts();
+    }
+
+    winrt::fire_and_forget IslandWindow::LoadShortcuts()
+    {
+        auto lifetime = get_strong();
+        m_shortcuts.clear();
+        AppTiles().Items().Clear();
+        try
+        {
+            auto dir = co_await winrt::Windows::Storage::StorageFolder::GetFolderFromPathAsync(
+                winrt::hstring(ShortcutDir()));
+            auto files = co_await dir.GetFilesAsync();
+            for (auto const& f : files)
+            {
+                if (m_shortcuts.size() >= 4) break;
+                m_shortcuts.push_back(f);
+
+                std::wstring wname(f.Name().c_str());
+                auto dot = wname.rfind(L'.');
+                std::wstring ext = dot == std::wstring::npos ? L"" : wname.substr(dot + 1);
+                for (auto& c : ext) c = towupper(c);
+                // 去扩展名的显示名
+                std::wstring disp = dot == std::wstring::npos ? wname : wname.substr(0, dot);
+                auto label = ext.empty() ? std::wstring(disp.begin(), disp.begin() + std::min<size_t>(2, disp.size()))
+                                         : (ext.size() > 4 ? ext.substr(0, 4) : ext);
+
+                int idx = static_cast<int>(m_shortcuts.size() - 1);
+                auto tile = Controls::Border();
+                tile.CornerRadius(CornerRadius(8));
+                tile.Background(Media::SolidColorBrush(Windows::UI::Color{ 0x66, 0xFF, 0xFF, 0xFF }));
+                tile.BorderBrush(Media::SolidColorBrush(Windows::UI::Color{ 0x24, 0x00, 0x00, 0x00 }));
+                tile.BorderThickness(Thickness{ 1 });
+                tile.Padding(Thickness{ 8, 6, 8, 6 });
+                auto sp = Controls::StackPanel();
+                sp.Spacing(4);
+                auto badge = Controls::Border();
+                badge.Width(40); badge.Height(40); badge.CornerRadius(CornerRadius(10));
+                badge.Background(Media::SolidColorBrush(ExtColor(ext)));
+                auto et = Controls::TextBlock();
+                et.Text(winrt::hstring(label));
+                et.FontSize(10);
+                et.FontWeight(winrt::Microsoft::UI::Text::FontWeights::Bold());
+                et.Foreground(Media::SolidColorBrush(Windows::UI::Color{ 0xFF, 0xFF, 0xFF, 0xFF }));
+                et.HorizontalAlignment(HorizontalAlignment::Center);
+                et.VerticalAlignment(VerticalAlignment::Center);
+                badge.Child(et);
+                auto nm = Controls::TextBlock();
+                nm.Text(winrt::hstring(disp));
+                nm.FontSize(10);
+                nm.MaxWidth(56);
+                nm.TextTrimming(TextTrimming::CharacterEllipsis);
+                sp.Children().Append(badge);
+                sp.Children().Append(nm);
+                tile.Child(sp);
+                tile.Tapped([this, idx](IInspectable const&, Input::TappedRoutedEventArgs const&) {
+                    LaunchShortcut(idx);
+                });
+                AppTiles().Items().Append(tile);
+            }
+        }
+        catch (...) {}
+        if (m_shortcuts.empty()) AppHint().Text(L"拖入快捷方式（.lnk/.exe）· 存放 %LOCALAPPDATA%\IF-OA\shortcuts · 上限 4");
+        else AppHint().Text(std::to_wstring(m_shortcuts.size()) + L" 个 · 点击启动 · 拖入可续加（上限 4）");
+    }
+
+    winrt::fire_and_forget IslandWindow::LaunchShortcut(int idx)
+    {
+        auto lifetime = get_strong();
+        if (idx < 0 || idx >= static_cast<int>(m_shortcuts.size())) co_return;
+        try { co_await winrt::Windows::System::Launcher::LaunchFileAsync(m_shortcuts[idx]); }
+        catch (...) { AppHint().Text(L"启动失败（仅支持可执行/快捷方式）"); }
     }
 
     void IslandWindow::OnTintChanged(IInspectable const&,

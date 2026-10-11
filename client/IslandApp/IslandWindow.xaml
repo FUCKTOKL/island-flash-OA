@@ -146,13 +146,13 @@
                 <Grid x:Name="ContentHost">
 
 <!-- Page0 工作台（天平账）：左=待办+客户端快捷方式 / 中=天气柱 / 右=审批hero+音乐 -->
-                <Grid x:Name="Page0" ColumnSpacing="10">
+                <Grid x:Name="Page0" ColumnSpacing="26">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="1.1*"/>
                         <ColumnDefinition Width="300"/>
                         <ColumnDefinition Width="1.1*"/>
                     </Grid.ColumnDefinitions>
-                    <Grid Grid.Column="0" RowSpacing="10">
+                    <Grid Grid.Column="0" RowSpacing="26">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="Auto"/>
@@ -190,38 +190,18 @@
                                     <TextBlock Text="客户端快捷方式" FontSize="14" FontWeight="SemiBold" FontFamily="Segoe UI Variable Display" CharacterSpacing="40"/>
                                     <TextBlock Text="APPS" FontSize="9" FontFamily="Cascadia Mono" Opacity="0.45" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                 </Grid>
-                                <Grid ColumnSpacing="8" Margin="0,10,0,0">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <StackPanel Grid.Column="0" Spacing="4" ToolTipService.ToolTip="待 P2 接入启动器">
-                                        <Border CornerRadius="8" Background="{ThemeResource IslandAccentBrush}" Height="40">
-                                            <TextBlock Text="企微" Foreground="White" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        </Border>
-                                        <TextBlock Text="企业微信" FontSize="10" Opacity="0.65" HorizontalAlignment="Center"/>
-                                    </StackPanel>
-                                    <StackPanel Grid.Column="1" Spacing="4" ToolTipService.ToolTip="待 P2 接入启动器">
-                                        <Border CornerRadius="8" Background="{ThemeResource IslandDangerBrush}" Height="40">
-                                            <TextBlock Text="邮箱" Foreground="White" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        </Border>
-                                        <TextBlock Text="Outlook" FontSize="10" Opacity="0.65" HorizontalAlignment="Center"/>
-                                    </StackPanel>
-                                    <StackPanel Grid.Column="2" Spacing="4" ToolTipService.ToolTip="待 P2 接入启动器">
-                                        <Border CornerRadius="8" Background="#7FA8D9" Height="40">
-                                            <TextBlock Text="表格" Foreground="White" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        </Border>
-                                        <TextBlock Text="Excel" FontSize="10" Opacity="0.65" HorizontalAlignment="Center"/>
-                                    </StackPanel>
-                                    <StackPanel Grid.Column="3" Spacing="4" ToolTipService.ToolTip="待 P2 接入启动器">
-                                        <Border CornerRadius="8" Background="{ThemeResource ApprBg}" Height="40">
-                                            <TextBlock Text="代码" Foreground="White" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        </Border>
-                                        <TextBlock Text="VS Code" FontSize="10" Opacity="0.65" HorizontalAlignment="Center"/>
-                                    </StackPanel>
-                                </Grid>
+                                <!-- 拖拽落区：DeskBox 式自拖自存（%LOCALAPPDATA%\IF-OA\shortcuts，上限 4） -->
+                                <ItemsControl x:Name="AppTiles" AllowDrop="True" Background="Transparent" MinHeight="50"
+                                              DragOver="OnAppDragOver" Drop="OnAppDrop" Margin="0,10,0,0"
+                                              HorizontalAlignment="Left">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal" Spacing="8"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                </ItemsControl>
+                                <TextBlock x:Name="AppHint" Text="拖入快捷方式（.lnk/.exe）· 存放 %LOCALAPPDATA%\IF-OA\shortcuts · 上限 4"
+                                           FontSize="9" Opacity="0.4" Margin="0,6,0,0"/>
                             </StackPanel>
                         </Border>
                     </Grid>
@@ -236,7 +216,7 @@
                         </StackPanel>
                     </Border>
                     <!-- 右翼：审批 hero + 音乐占位（SMTC P2） -->
-                    <Grid Grid.Column="2" RowSpacing="10">
+                    <Grid Grid.Column="2" RowSpacing="26">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
@@ -293,7 +273,7 @@
 
                     <!-- 公共文件格子：标题+计数 | 群选择 | 图标网格 -->
                     <Border Grid.Column="0" CornerRadius="8" Background="{ThemeResource CardBg}"
-                            BorderBrush="{ThemeResource CardBorder}" BorderThickness="1" Padding="12" Margin="0,0,8,0">
+                            BorderBrush="{ThemeResource CardBorder}" BorderThickness="1" Padding="12" Margin="0,0,13,0">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
@@ -322,7 +302,7 @@
 
                     <!-- 我的文件格子：标题+计数 | 上传 | 图标网格 -->
                     <Border Grid.Column="1" CornerRadius="8" Background="{ThemeResource CardBg}"
-                            BorderBrush="{ThemeResource CardBorder}" BorderThickness="1" Padding="12" Margin="8,0,0,0">
+                            BorderBrush="{ThemeResource CardBorder}" BorderThickness="1" Padding="12" Margin="13,0,0,0">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
@@ -336,7 +316,7 @@
                                 </StackPanel>
                                 <Button Content="上传" Click="OnUploadClick" CornerRadius="6" Padding="14,5" FontSize="12"
                                         Background="{ThemeResource IslandAccentBrush}" Foreground="White"
-                                        VerticalAlignment="Center"/>
+                                        HorizontalAlignment="Right" VerticalAlignment="Center"/>
                             </Grid>
                             <ScrollViewer Grid.Row="1" Margin="0,10,0,0" VerticalScrollBarVisibility="Auto">
                                 <ItemsControl x:Name="MyFileList">
@@ -360,7 +340,7 @@
 
                     <!-- 会话列表岛 -->
                     <Border Grid.Column="0" CornerRadius="8" Background="{ThemeResource CardBg}"
-                            BorderBrush="{ThemeResource CardBorder}" BorderThickness="1" Padding="8" Margin="0,0,8,0">
+                            BorderBrush="{ThemeResource CardBorder}" BorderThickness="1" Padding="8" Margin="0,0,13,0">
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
                             <StackPanel x:Name="ConvList" Spacing="4"/>
                         </ScrollViewer>
@@ -397,7 +377,7 @@
                 </Grid>
 
                 <!-- P3 个人中心（天平账）：左资料+密码 / 中名片 / 右设置 -->
-                <Grid x:Name="Page3" ColumnSpacing="10">
+                <Grid x:Name="Page3" ColumnSpacing="26">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="260"/>
@@ -462,7 +442,7 @@
                 <Border CornerRadius="8" Background="{ThemeResource LoginBg}" BorderBrush="{ThemeResource LoginBorder}"
                         BorderThickness="1" Width="660" MaxHeight="400" Padding="18"
                         HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <Grid RowSpacing="10">
+                    <Grid RowSpacing="26">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
