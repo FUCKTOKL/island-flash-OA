@@ -63,6 +63,25 @@ namespace winrt::IslandApp::implementation
     App::App()
     {
         InitializeComponent();
+        // XAML/WinRT 层未处理异常取证：追加写 %TEMP%\ifoa-island-crash.log + Handled 保命
+        // （SEH 滤网抓不到 hresult_error 走 XAML 泵的这一类——冻结式死亡的真凶在这里现形）
+        UnhandledException([](IInspectable const&, Microsoft::UI::Xaml::UnhandledExceptionEventArgs const& e) {
+            char path[MAX_PATH]{};
+            if (!GetTempPathA(MAX_PATH, path)) return;
+            strcat_s(path, "ifoa-island-crash.log");
+            char buf[600]{};
+            sprintf_s(buf, "xaml hr=0x%08lX msg=%ws\n",
+                      static_cast<unsigned long>(e.Exception().value), e.Message().c_str());
+            HANDLE f = CreateFileA(path, FILE_APPEND_DATA, 0, nullptr,
+                                   OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+            if (f != INVALID_HANDLE_VALUE)
+            {
+                DWORD w{};
+                WriteFile(f, buf, static_cast<DWORD>(strlen(buf)), &w, nullptr);
+                CloseHandle(f);
+            }
+            e.Handled(true);
+        });
     }
 
     void App::OnLaunched(LaunchActivatedEventArgs const&)
