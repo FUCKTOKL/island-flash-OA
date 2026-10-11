@@ -128,6 +128,7 @@ namespace winrt::IslandApp::implementation
         int m_curTab{ 0 };         // 当前页签（切主题时刷新选中药丸用）
         unsigned char m_tint{ 60 }; // 玻璃浓度偏好（30-90，注册表 tint）
         void ApplyTint();           // 浓度 → Root 底色 alpha（叠在亚克力上的岛体浓度）
+        winrt::fire_and_forget DoChangePassword(); // PUT /api/users/me/password
         winrt::fire_and_forget DoAppDrop(Windows::ApplicationModel::DataTransfer::DataPackageView dv); // 拖入 → 复制进快捷方式库
         winrt::fire_and_forget LoadShortcuts();    // 扫库 → 瓦片
         winrt::fire_and_forget LaunchShortcut(int idx); // 点瓦片启动

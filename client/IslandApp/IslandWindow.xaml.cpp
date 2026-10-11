@@ -359,20 +359,24 @@ namespace winrt::IslandApp::implementation
     winrt::fire_and_forget IslandWindow::AfterLogin(winrt::hstring token)
     {
         auto lifetime = get_strong();
-        auto me = co_await m_api.GetAsync(L"/api/auth/me");
+        auto me = co_await m_api.GetAsync(L"/api/users/me"); // 契约路由是 /users/me（曾误调 /auth/me → 404）
         if (!me.empty())
         {
             try
             {
                 auto obj = winrt::Windows::Data::Json::JsonObject::Parse(me);
-                MeWelcome().Text(L"欢迎，" + obj.GetNamedString(L"name") + L"（" + obj.GetNamedString(L"role") + L"）");
+                auto disp = obj.HasNamedString(L"display_name") && !obj.GetNamedString(L"display_name").empty()
+                                ? obj.GetNamedString(L"display_name")
+                                : obj.GetNamedString(L"username");
+                auto role = obj.HasNamedString(L"role") ? obj.GetNamedString(L"role") : winrt::hstring(L"—");
+                MeWelcome().Text(L"欢迎，" + disp + L"（" + role + L"）");
                 m_myUid = static_cast<int>(obj.GetNamedNumber(L"id")); // 气泡左右对齐用
                 // 天平账：名片/资料卡回填
-                ProfName().Text(obj.GetNamedString(L"name"));
-                ProfRole().Text(obj.GetNamedString(L"role"));
-                ProfUid().Text(L"工号 " + obj.GetNamedString(L"name")); // 契约 me 无工号，先以账号名代展示
+                ProfName().Text(disp);
+                ProfRole().Text(role);
+                ProfUid().Text(L"账号 " + obj.GetNamedString(L"username"));
                 ProfUid2().Text(L"UID " + std::to_wstring(m_myUid));
-                AvChar().Text(winrt::hstring(std::wstring(1, std::wstring(obj.GetNamedString(L"name").c_str())[0])));
+                AvChar().Text(winrt::hstring(std::wstring(1, std::wstring(disp.c_str())[0])));
             }
             catch (...) { /* me 拉取失败不阻断主流程 */ }
         }
@@ -1376,8 +1380,41 @@ namespace winrt::IslandApp::implementation
 
     void IslandWindow::OnChangePasswordClick(IInspectable const&, RoutedEventArgs const&)
     {
-        // ponytail: 契约暂无密码端点，接入后补 POST
-        PwNote().Text(L"密码修改接口契约待补充 · 敬请期待");
+        DoChangePassword();
+    }
+
+    // JSON 字符串转义（密码可含引号/反斜杠）
+    static std::wstring JsonEsc(std::wstring v)
+    {
+        std::wstring o;
+        for (wchar_t c : v)
+        {
+            if (c == L'\\' || c == L'"') o += L'\\';
+            o += c;
+        }
+        return o;
+    }
+
+    winrt::fire_and_forget IslandWindow::DoChangePassword()
+    {
+        auto lifetime = get_strong();
+        auto oldp = std::wstring(PwOld().Password().c_str());
+        auto newp = std::wstring(PwNew().Password().c_str());
+        if (oldp.empty() || newp.empty()) { PwNote().Text(L"请填写原密码与新密码"); co_return; }
+        PwNote().Text(L"提交中…");
+        std::wstring body = L"{\"old_password\":\"" + JsonEsc(oldp) + L"\",\"new_password\":\"" + JsonEsc(newp) + L"\"}";
+        auto resp = co_await m_api.PutAsync(L"/api/users/me/password", winrt::hstring(body));
+        if (resp.find(L"\"ok\"") != std::wstring::npos || resp.find(L"true") != std::wstring::npos)
+        {
+            PwNote().Text(L"密码已更新 · 请牢记（7 天后 token 过期需重登）");
+            PwNew().Password(L"");
+            PwOld().Password(L"");
+        }
+        else
+        {
+            PwNote().Text(resp.empty() ? L"修改失败（服务端无响应）"
+                                       : (resp.find(L"400") != std::wstring::npos ? L"原密码不正确" : L"修改失败"));
+        }
     }
 
     void IslandWindow::OnDarkTglToggled(IInspectable const&, RoutedEventArgs const&)
