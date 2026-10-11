@@ -133,6 +133,8 @@ namespace winrt::IslandApp::implementation
         winrt::fire_and_forget LaunchShortcut(int idx); // 点瓦片启动
         static Windows::UI::Color ExtColor(std::wstring const& ext); // 扩展名 → 类型色
         std::vector<winrt::Windows::Storage::StorageFile> m_shortcuts; // 快捷方式库（≤4）
+        bool m_pendingCollapse{ false };               // 按住左键失活（拖拽启动）→ 挂起收起
+        winrt::Microsoft::UI::Dispatching::DispatcherQueueTimer m_collapseWatch{ nullptr }; // 按钮释放监视器
         int m_curConv{ -1 };       // 对话页当前会话 id（-1 未选）
         bool m_convIsGroup{ false };
         int m_myUid{ 0 };          // 我的 uid（气泡左右对齐用）

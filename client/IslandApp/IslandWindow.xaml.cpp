@@ -1190,10 +1190,27 @@ namespace winrt::IslandApp::implementation
     // ================= 失活收起 =================
     void IslandWindow::OnActivated(IInspectable const&, WindowActivatedEventArgs const& args)
     {
-        if (args.WindowActivationState() == WindowActivationState::Deactivated)
+        if (args.WindowActivationState() != WindowActivationState::Deactivated) return;
+        // 按住左键失活 ≈ 从资源管理器启动拖拽：收起会杀死落区——挂起，等按钮释放再判
+        if (GetAsyncKeyState(VK_LBUTTON) & 0x8000)
         {
-            Collapse(); // 点击窗外 → 收起；胶囊态时 Collapse 自带守卫，无副作用
+            m_pendingCollapse = true;
+            if (!m_collapseWatch)
+            {
+                m_collapseWatch = m_dq.CreateTimer();
+                m_collapseWatch.Interval(std::chrono::milliseconds(150));
+                m_collapseWatch.Tick([this](IInspectable const&, IInspectable const&) {
+                    if (GetAsyncKeyState(VK_LBUTTON) & 0x8000) return; // 仍按着（拖拽途中）
+                    m_collapseWatch.Stop();
+                    if (!m_pendingCollapse) return; // DragOver 已取消（用户正拖到岛上）
+                    m_pendingCollapse = false;
+                    Collapse();
+                });
+            }
+            m_collapseWatch.Start();
+            return;
         }
+        Collapse(); // 普通点击窗外 → 收起；胶囊态时 Collapse 自带守卫，无副作用
     }
 
     /* ===== 天平账移植：审批中心 + 个人中心设置 ===== */
@@ -1405,6 +1422,7 @@ namespace winrt::IslandApp::implementation
 
     void IslandWindow::OnAppDragOver(IInspectable const&, DragEventArgs const& e)
     {
+        m_pendingCollapse = false; // 拖到岛上=用户要放：取消挂起的收起
         e.AcceptedOperation(Windows::ApplicationModel::DataTransfer::DataPackageOperation::Copy);
     }
 

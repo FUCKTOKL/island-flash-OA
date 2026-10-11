@@ -182,18 +182,18 @@
                                 </Grid>
                             </Grid>
                         </Border>
-                        <!-- 客户端快捷方式（P2 接入启动器，现为占位） -->
-                        <Border Grid.Row="1" CornerRadius="8" Background="{ThemeResource CardBg}"
-                                BorderBrush="{ThemeResource CardBorder}" BorderThickness="1" Padding="14,12">
+                        <!-- 客户端快捷方式：DeskBox 式拖拽落区（整卡可落，空态亦可） -->
+                        <Border x:Name="AppDropZone" Grid.Row="1" CornerRadius="8" Background="{ThemeResource CardBg}"
+                                BorderBrush="{ThemeResource CardBorder}" BorderThickness="1" Padding="14,12"
+                                AllowDrop="True" DragOver="OnAppDragOver" Drop="OnAppDrop">
                             <StackPanel>
                                 <Grid>
                                     <TextBlock Text="客户端快捷方式" FontSize="14" FontWeight="SemiBold" FontFamily="Segoe UI Variable Display" CharacterSpacing="40"/>
                                     <TextBlock Text="APPS" FontSize="9" FontFamily="Cascadia Mono" Opacity="0.45" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                 </Grid>
                                 <!-- 拖拽落区：DeskBox 式自拖自存（%LOCALAPPDATA%\IF-OA\shortcuts，上限 4） -->
-                                <ItemsControl x:Name="AppTiles" AllowDrop="True" Background="Transparent" MinHeight="50"
-                                              DragOver="OnAppDragOver" Drop="OnAppDrop" Margin="0,10,0,0"
-                                              HorizontalAlignment="Left">
+                                <ItemsControl x:Name="AppTiles" Background="Transparent" MinHeight="50"
+                                              Margin="0,10,0,0" HorizontalAlignment="Left">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
                                             <StackPanel Orientation="Horizontal" Spacing="8"/>
